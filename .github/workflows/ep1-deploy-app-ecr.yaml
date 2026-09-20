@@ -1,0 +1,162 @@
+# ─────────────────────────────────────────────────────────────
+# EP1 · Plantilla reutilizable: Build + Push a ECR + rollout en el ASG
+#
+# La invoca ep1-deploy.yaml. Construye las 5 imagenes de EV1/app (frontend +
+# 4 microservicios) para la plataforma indicada, las publica en ECR (repos
+# creados por Terraform) y lanza un instance refresh del ASG para que las
+# EC2 App arranquen con la version nueva. Termina con un smoke test por el ALB.
+# ─────────────────────────────────────────────────────────────
+
+name: EP1 · Build + Push ECR + rollout (plantilla reutilizable)
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Tag a publicar (ademas de latest)
+        required: false
+        type: string
+        default: latest
+      platform:
+        description: linux/arm64 (t4g) · linux/amd64 (t3)
+        required: false
+        type: string
+        default: linux/arm64
+      project_name:
+        required: false
+        type: string
+        default: freshbox
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      rollout:
+        description: Lanzar instance refresh del ASG y smoke test
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  APP_DIR: EV1/app
+
+jobs:
+  build:
+    name: build+push ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            context: microservicioFrontend
+          - service: get-products
+            context: microserviciosBackend/get-products
+          - service: create-product
+            context: microserviciosBackend/create-product
+          - service: update-product
+            context: microserviciosBackend/update-product
+          - service: delete-product
+            context: microserviciosBackend/delete-product
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Login ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # QEMU permite construir arm64 en el runner x86_64.
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push ${{ matrix.service }} (${{ inputs.platform }})
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/${{ matrix.context }}
+          platforms: ${{ inputs.platform }}
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ inputs.project_name }}-${{ matrix.service }}:latest
+            ${{ steps.ecr.outputs.registry }}/${{ inputs.project_name }}-${{ matrix.service }}:${{ inputs.image_tag }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+      - name: Resumen
+        run: echo "- \`${{ inputs.project_name }}-${{ matrix.service }}\` → \`latest\`, \`${{ inputs.image_tag }}\` (${{ inputs.platform }})" >> "$GITHUB_STEP_SUMMARY"
+
+  rollout:
+    name: instance refresh + smoke test
+    needs: build
+    if: inputs.rollout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      # Reemplaza gradualmente las EC2 App (min 50 % sano) para que arranquen
+      # con las imagenes recien publicadas.
+      - name: Instance refresh del ASG
+        run: |
+          ASG="${{ inputs.project_name }}-asg-app"
+          ID=$(aws autoscaling start-instance-refresh \
+                --auto-scaling-group-name "$ASG" \
+                --preferences '{"MinHealthyPercentage":50,"InstanceWarmup":120}' \
+                --query InstanceRefreshId --output text)
+          echo "Instance refresh $ID en $ASG"
+          for i in $(seq 1 60); do
+            S=$(aws autoscaling describe-instance-refreshes \
+                  --auto-scaling-group-name "$ASG" --instance-refresh-ids "$ID" \
+                  --query 'InstanceRefreshes[0].Status' --output text)
+            echo "[$i] $S"
+            case "$S" in
+              Successful) exit 0 ;;
+              Failed|Cancelled|RollbackSuccessful|RollbackFailed) exit 1 ;;
+            esac
+            sleep 30
+          done
+          echo "Timeout esperando el instance refresh"; exit 1
+
+      - name: Smoke test por el ALB
+        run: |
+          DNS=$(aws elbv2 describe-load-balancers --names "${{ inputs.project_name }}-alb" \
+                  --query 'LoadBalancers[0].DNSName' --output text)
+          URL="http://$DNS"
+          for i in $(seq 1 20); do
+            if curl -fsS --max-time 10 "$URL/api/products" > /tmp/products.json; then break; fi
+            echo "[$i] esperando al ALB..."; sleep 15
+          done
+          curl -fsS --max-time 10 "$URL/" > /dev/null
+          echo "Frontend OK: $URL"; head -c 600 /tmp/products.json; echo
+          {
+            echo "## FreshBox desplegado"
+            echo "- Frontend: $URL"
+            echo "- API: $URL/api/products"
+          } >> "$GITHUB_STEP_SUMMARY"
