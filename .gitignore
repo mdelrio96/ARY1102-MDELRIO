@@ -1,0 +1,16 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
+plan.txt
+crash.log
+terraform.tfvars
+*.auto.tfvars
+
+# Locales
+.env
+Thumbs.db
+.DS_Store
+
+__pycache__/
