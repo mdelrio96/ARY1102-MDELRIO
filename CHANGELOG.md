@@ -12,6 +12,10 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Aplicacion FreshBox adaptada al ALB unico ([c21bb00](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/c21bb00f0f6f047291002b821b77e34e5c3798a6))
 - `2026-09-19` **ev1:** Script para cargar credenciales del Learner Lab en GitHub ([3168b66](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3168b6644c59ac22bd49d4bdaa23031dbb521f9a))
 
+### Corregido
+
+- `2026-09-19` **ev1:** Rolling manual de EC2 App en vez de instance refresh ([19cfca1](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/19cfca1b968de42e1988b72a8a06655cc672e6c9))
+
 ### CI/CD
 
 - `2026-09-19` **ev1:** Receta reutilizable de Terraform (apply, destroy, plan) ([ab7fc8e](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/ab7fc8e5664da01c434e042d9f8491d6f5513065))
