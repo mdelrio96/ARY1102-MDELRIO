@@ -59,10 +59,10 @@ terraform destroy
 
 Fallback si el lab rechaza `t4g`: `terraform apply -var instance_type=t3.small -var mysql_instance_type=t3.small -var instance_arch=x86_64` e imágenes `linux/amd64`.
 
-Después del `apply` hay que publicar las imágenes (`EV1/app/scripts/ecr-push.sh`, o el workflow *EP1 · Desplegar*) y, si las EC2 App ya se rindieron esperando, forzar un *instance refresh*:
+Después del `apply` hay que publicar las imágenes (`EV1/app/scripts/ecr-push.sh`, o el workflow *EP1 · Desplegar*) y, si las EC2 App ya corrían una versión anterior, reemplazarlas de a una (la SCP del lab deniega `StartInstanceRefresh`; el ASG relanza cada instancia terminada):
 
 ```bash
-aws autoscaling start-instance-refresh --auto-scaling-group-name freshbox-asg-app
+aws ec2 terminate-instances --instance-ids <id-ec2-app>   # esperar a que el reemplazo quede healthy en el TG antes de la siguiente
 ```
 
 Validar con `terraform output alb_url` → `/` (frontend) y `/api/products` (JSON).

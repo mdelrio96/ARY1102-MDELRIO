@@ -12,7 +12,7 @@ Editable en [`diagramas/D1_FreshBox_TOBE.drawio`](diagramas/D1_FreshBox_TOBE.dra
 .github/workflows/                 (raíz del repo; GitHub solo los lee ahí)
 ├── ep1-deploy.yaml                EP1 · Desplegar FreshBox (infra + app)   ← Run workflow
 ├── ep1-provision-freshbox.yaml    EP1 · Infraestructura: apply | destroy | plan (reutilizable + Run workflow)
-├── ep1-deploy-app-ecr.yaml        plantilla: build arm64 → ECR → instance refresh → smoke test
+├── ep1-deploy-app-ecr.yaml        plantilla: build arm64 → ECR → rolling de EC2 App → smoke test
 └── ep1-validate.yaml              CI: terraform validate + docker build sin publicar
 EV1/
 ├── infra/freshbox-ep1/            Terraform (main.tf, variables.tf, outputs.tf, templates/, files/)
@@ -24,7 +24,7 @@ EV1/
 ## Flujo de despliegue
 
 ```
-Run workflow "EP1 · Desplegar" ──► infra (terraform apply) ──► app (5× build arm64 → ECR) ──► instance refresh + curl al ALB
+Run workflow "EP1 · Desplegar" ──► infra (terraform apply) ──► app (5× build arm64 → ECR) ──► rolling de EC2 App + curl al ALB
 ```
 
 Las plantillas se invocan con `uses: ./.github/workflows/...` (mismo repo). `ep1-provision-freshbox.yaml` también tiene su propio *Run workflow* para levantar, bajar (`destroy`) o revisar (`plan`) solo la infraestructura.
@@ -45,7 +45,7 @@ Si un job falla con `ExpiredToken`, repetir el paso 2 y relanzar.
 ```bash
 terraform -chdir=EV1/infra/freshbox-ep1 apply
 cd EV1/app && ./scripts/ecr-push.sh && cd ../..
-aws autoscaling start-instance-refresh --auto-scaling-group-name freshbox-asg-app
+aws ec2 terminate-instances --instance-ids <id-ec2-app>   # de a una; el ASG la reemplaza (StartInstanceRefresh esta bloqueado en el lab)
 terraform -chdir=EV1/infra/freshbox-ep1 output alb_url
 ```
 

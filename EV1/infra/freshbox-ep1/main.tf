@@ -409,7 +409,8 @@ resource "aws_autoscaling_group" "app" {
   }
 
   # Reemplazo gradual cuando cambia el Launch Template; la pipeline tambien lo
-  # dispara (aws autoscaling start-instance-refresh) tras publicar imagenes.
+  # (StartInstanceRefresh esta denegado por la SCP del Learner Lab: la pipeline
+  # hace un rolling manual terminando las EC2 de a una tras publicar imagenes).
   instance_refresh {
     strategy = "Rolling"
     preferences {

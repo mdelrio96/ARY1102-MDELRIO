@@ -3,8 +3,9 @@
 #
 # La invoca ep1-deploy.yaml. Construye las 5 imagenes de EV1/app (frontend +
 # 4 microservicios) para la plataforma indicada, las publica en ECR (repos
-# creados por Terraform) y lanza un instance refresh del ASG para que las
-# EC2 App arranquen con la version nueva. Termina con un smoke test por el ALB.
+# creados por Terraform) y reemplaza gradualmente las EC2 App para que
+# arranquen con la version nueva (rolling manual: la SCP del lab bloquea
+# StartInstanceRefresh). Termina con un smoke test por el ALB.
 # ─────────────────────────────────────────────────────────────
 
 name: EP1 · Build + Push ECR + rollout (plantilla reutilizable)
@@ -31,7 +32,7 @@ on:
         type: string
         default: us-east-1
       rollout:
-        description: Lanzar instance refresh del ASG y smoke test
+        description: Reemplazar las EC2 App y hacer smoke test
         required: false
         type: boolean
         default: true
@@ -108,7 +109,7 @@ jobs:
         run: echo "- \`${{ inputs.project_name }}-${{ matrix.service }}\` → \`latest\`, \`${{ inputs.image_tag }}\` (${{ inputs.platform }})" >> "$GITHUB_STEP_SUMMARY"
 
   rollout:
-    name: instance refresh + smoke test
+    name: rolling de EC2 App + smoke test
     needs: build
     if: inputs.rollout
     runs-on: ubuntu-latest
@@ -121,28 +122,39 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ inputs.aws_region }}
 
-      # Reemplaza gradualmente las EC2 App (min 50 % sano) para que arranquen
-      # con las imagenes recien publicadas.
-      - name: Instance refresh del ASG
+      # Rolling manual: la SCP del Learner Lab deniega autoscaling:StartInstanceRefresh,
+      # asi que se termina cada EC2 App sana de a una (ec2 terminate-instances) y se
+      # espera a que el ASG levante el reemplazo y quede healthy en el Target Group
+      # antes de seguir. Las instancias aun no sanas (esperando imagenes en el primer
+      # despliegue) no se tocan: su user data reintenta el pull y arranca con la
+      # version recien publicada.
+      - name: Reemplazo gradual de las EC2 App
         run: |
-          ASG="${{ inputs.project_name }}-asg-app"
-          ID=$(aws autoscaling start-instance-refresh \
-                --auto-scaling-group-name "$ASG" \
-                --preferences '{"MinHealthyPercentage":50,"InstanceWarmup":120}' \
-                --query InstanceRefreshId --output text)
-          echo "Instance refresh $ID en $ASG"
-          for i in $(seq 1 60); do
-            S=$(aws autoscaling describe-instance-refreshes \
-                  --auto-scaling-group-name "$ASG" --instance-refresh-ids "$ID" \
-                  --query 'InstanceRefreshes[0].Status' --output text)
-            echo "[$i] $S"
-            case "$S" in
-              Successful) exit 0 ;;
-              Failed|Cancelled|RollbackSuccessful|RollbackFailed) exit 1 ;;
-            esac
-            sleep 30
+          P="${{ inputs.project_name }}"
+          TG=$(aws elbv2 describe-target-groups --names "$P-tg-web" \
+                 --query 'TargetGroups[0].TargetGroupArn' --output text)
+          DESIRED=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "$P-asg-app" \
+                      --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          healthy() { aws elbv2 describe-target-health --target-group-arn "$TG" \
+                        --query "TargetHealthDescriptions[?TargetHealth.State=='healthy'].Target.Id" --output text; }
+          wait_healthy() {  # espera hasta que haya DESIRED targets sanos (max 25 min)
+            for i in $(seq 1 50); do
+              N=$(healthy | wc -w)
+              echo "[$i] targets sanos: $N / $DESIRED"
+              [ "$N" -ge "$DESIRED" ] && return 0
+              sleep 30
+            done
+            echo "Timeout esperando targets sanos"; return 1
+          }
+          OLD=$(healthy)
+          echo "Instancias sanas con la version anterior: ${OLD:-ninguna}"
+          for ID in $OLD; do
+            echo "== Terminando $ID (el ASG la reemplaza)"
+            aws ec2 terminate-instances --instance-ids "$ID" > /dev/null
+            sleep 60
+            wait_healthy
           done
-          echo "Timeout esperando el instance refresh"; exit 1
+          wait_healthy
 
       - name: Smoke test por el ALB
         run: |

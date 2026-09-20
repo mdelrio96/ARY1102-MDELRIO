@@ -13,7 +13,7 @@ output "alb_url" {
 }
 
 output "asg_name" {
-  description = "Nombre del Auto Scaling Group (instance refresh en la pipeline)."
+  description = "Nombre del Auto Scaling Group."
   value       = aws_autoscaling_group.app.name
 }
 
