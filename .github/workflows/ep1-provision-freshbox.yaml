@@ -1,0 +1,196 @@
+# ─────────────────────────────────────────────────────────────
+# EP1 · Infraestructura FreshBox (Terraform) en AWS Academy Learner Lab
+#
+# - workflow_dispatch: Actions → "EP1 · Infraestructura" → Run workflow
+#   (apply = levantar, destroy = bajar todo, plan = solo revisar). Sin push.
+# - workflow_call: la invoca ep1-deploy.yaml para levantar infra + app de una vez.
+#
+# Ejecuta exactamente los mismos comandos que en local:
+#   terraform -chdir=EV1/infra/freshbox-ep1 init / plan / apply | destroy
+# El estado vive en el bucket S3 fijo declarado en el backend de main.tf.
+# ─────────────────────────────────────────────────────────────
+
+name: EP1 · Infraestructura (apply / destroy / plan)
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: apply · destroy · plan
+        required: false
+        type: string
+        default: apply
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      instance_type:
+        description: Tipo EC2 de la capa App (t4g.small = Graviton arm64)
+        required: false
+        type: string
+        default: t4g.small
+      instance_arch:
+        description: arm64 (t4g) · x86_64 (t3, fallback)
+        required: false
+        type: string
+        default: arm64
+      asg_max_size:
+        required: false
+        type: number
+        default: 4
+      image_tag:
+        description: Tag de las imagenes ECR que descargan las EC2 App
+        required: false
+        type: string
+        default: latest
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+    outputs:
+      alb_dns_name:
+        value: ${{ jobs.terraform.outputs.alb_dns_name }}
+      asg_name:
+        value: ${{ jobs.terraform.outputs.asg_name }}
+
+  workflow_dispatch:
+    inputs:
+      action:
+        description: apply (levantar) · destroy (bajar todo) · plan (solo revisar)
+        required: true
+        type: choice
+        options: [apply, destroy, plan]
+        default: apply
+      aws_region:
+        description: Región AWS
+        required: true
+        type: string
+        default: us-east-1
+      instance_type:
+        description: Tipo EC2 capa App (t4g.small Graviton; fallback t3.small)
+        required: true
+        type: string
+        default: t4g.small
+      instance_arch:
+        description: Arquitectura AMI (arm64 para t4g, x86_64 para t3)
+        required: true
+        type: choice
+        options: [arm64, x86_64]
+        default: arm64
+      asg_max_size:
+        description: Máximo de instancias del ASG
+        required: true
+        type: number
+        default: 4
+      image_tag:
+        description: Tag de imágenes ECR que descargan las EC2 App
+        required: true
+        type: string
+        default: latest
+
+permissions:
+  contents: read
+
+env:
+  TF_DIR: EV1/infra/freshbox-ep1
+
+jobs:
+  terraform:
+    name: terraform ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    # Nunca dos operaciones sobre el mismo estado a la vez.
+    concurrency:
+      group: freshbox-ep1-terraform
+      cancel-in-progress: false
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_aws_region: ${{ inputs.aws_region }}
+      TF_VAR_instance_type: ${{ inputs.instance_type }}
+      TF_VAR_mysql_instance_type: ${{ inputs.instance_type }}
+      TF_VAR_instance_arch: ${{ inputs.instance_arch }}
+      TF_VAR_asg_max_size: ${{ inputs.asg_max_size }}
+      TF_VAR_image_tag: ${{ inputs.image_tag }}
+    outputs:
+      alb_dns_name: ${{ steps.out.outputs.alb_dns_name }}
+      asg_name: ${{ steps.out.outputs.asg_name }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform fmt + validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform validate
+
+      - name: Terraform plan
+        if: inputs.action == 'plan'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform plan -input=false -no-color | tee plan.txt
+          { echo "### terraform plan"; echo '```'; tail -n 250 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform apply
+        if: inputs.action == 'apply'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -input=false -auto-approve
+
+      # AWS Backup no deja borrar un vault con recovery points y Terraform no
+      # los gestiona: se eliminan antes del destroy.
+      - name: Vaciar el vault de AWS Backup
+        if: inputs.action == 'destroy'
+        run: |
+          VAULT=freshbox-backup-vault
+          if aws backup describe-backup-vault --backup-vault-name "$VAULT" > /dev/null 2>&1; then
+            for ARN in $(aws backup list-recovery-points-by-backup-vault \
+                           --backup-vault-name "$VAULT" \
+                           --query 'RecoveryPoints[].RecoveryPointArn' --output text); do
+              echo "Borrando $ARN"
+              aws backup delete-recovery-point --backup-vault-name "$VAULT" --recovery-point-arn "$ARN"
+            done
+          fi
+
+      - name: Terraform destroy
+        if: inputs.action == 'destroy'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform destroy -input=false -auto-approve
+
+      - name: Capturar salidas (ALB + ASG)
+        id: out
+        if: inputs.action == 'apply'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          echo "alb_dns_name=$(terraform output -raw alb_dns_name)" >> "$GITHUB_OUTPUT"
+          echo "asg_name=$(terraform output -raw asg_name)" >> "$GITHUB_OUTPUT"
+          {
+            echo "### EP1 — Infraestructura lista"
+            echo ""
+            echo "**Frontend por el ALB:** http://$(terraform output -raw alb_dns_name)"
+            echo ""
+            echo "Las EC2 App esperan las imágenes en ECR (reintentan hasta 20 min). Si no se ejecutó desde *EP1 · Desplegar*, publica la app con ese workflow."
+            echo ""
+            echo '```'; terraform output; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
