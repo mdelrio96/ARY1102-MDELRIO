@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────
+# EP1 · Desplegar FreshBox completo (Actions → "EP1 · Desplegar" → Run workflow).
+# No requiere push: encadena las dos plantillas reutilizables de este repo:
+#   1. infra → terraform apply (VPC, SG, ECR, MySQL, LT + ASG, ALB, Backup)
+#   2. app   → build arm64 + push a ECR + instance refresh + smoke test
+# Para bajar todo: workflow "EP1 · Infraestructura" con action = destroy.
+# ─────────────────────────────────────────────────────────────
+
+name: EP1 · Desplegar FreshBox (infra + app)
+
+on:
+  workflow_dispatch:
+    inputs:
+      provision_infra:
+        description: Levantar/actualizar la infraestructura con Terraform antes de publicar la app
+        required: true
+        type: boolean
+        default: true
+      instance_type:
+        description: Tipo EC2 capa App (t4g.small Graviton; fallback t3.small)
+        required: true
+        type: string
+        default: t4g.small
+      instance_arch:
+        description: Arquitectura AMI (arm64 para t4g, x86_64 para t3)
+        required: true
+        type: choice
+        options: [arm64, x86_64]
+        default: arm64
+      image_tag:
+        description: Tag de las imágenes (además de latest)
+        required: true
+        type: string
+        default: latest
+
+permissions:
+  contents: read
+
+jobs:
+  infra:
+    name: Infraestructura (plantilla reutilizable)
+    if: ${{ inputs.provision_infra }}
+    uses: ./.github/workflows/ep1-provision-freshbox.yaml
+    with:
+      action: apply
+      instance_type: ${{ inputs.instance_type }}
+      instance_arch: ${{ inputs.instance_arch }}
+      image_tag: ${{ inputs.image_tag }}
+    secrets: inherit
+
+  app:
+    name: Build + Push ECR + rollout (plantilla reutilizable)
+    needs: infra
+    if: ${{ always() && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
+    uses: ./.github/workflows/ep1-deploy-app-ecr.yaml
+    with:
+      image_tag: ${{ inputs.image_tag }}
+      platform: ${{ inputs.instance_arch == 'x86_64' && 'linux/amd64' || 'linux/arm64' }}
+    secrets: inherit
