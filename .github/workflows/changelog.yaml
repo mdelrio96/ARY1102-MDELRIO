@@ -1,0 +1,64 @@
+# Changelog automático. En cada push a main (o al crear un tag vX.Y.Z) regenera
+# con git-cliff, a partir de los mensajes de commit (Conventional Commits):
+#   - CHANGELOG.md            todo el repositorio
+#   - EV<n>/CHANGELOG.md      solo los commits que tocan esa evaluación
+#     (EV<n>/** y sus workflows .github/workflows/ep<n>-*)
+# y hace commit de los archivos si cambiaron. Los CHANGELOG no se editan a mano.
+
+name: Changelog automático
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths-ignore: ["**/CHANGELOG.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog
+  cancel-in-progress: false
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio (historial completo)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Instalar git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generar changelog global
+        run: git cliff --config cliff.toml --output CHANGELOG.md
+
+      - name: Generar changelog por evaluación
+        run: |
+          for dir in EV*/; do
+            ev="${dir%/}"                                   # EV1
+            n="${ev#EV}"                                    # 1
+            echo "== $ev"
+            git cliff --config cliff.toml \
+              --include-path "$ev/**" \
+              --include-path ".github/workflows/ep$n-*" \
+              --output "$ev/CHANGELOG.md"
+          done
+
+      - name: Commit de los changelog si cambiaron
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md EV*/CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "Sin cambios en los changelog"
+          else
+            git commit -m "chore(release): actualiza changelog [skip ci]"
+            git push origin HEAD:main
+          fi

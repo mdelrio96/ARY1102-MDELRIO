@@ -1,0 +1,52 @@
+# Configuración de git-cliff (https://git-cliff.org): genera los CHANGELOG a
+# partir de los mensajes de commit (Conventional Commits). Lo ejecuta el
+# workflow .github/workflows/changelog.yaml en cada push a main; no editar los
+# CHANGELOG a mano.
+
+[changelog]
+header = """
+# Changelog
+
+Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los commits
+([Conventional Commits](https://www.conventionalcommits.org/es/)); formato basado en
+[Keep a Changelog](https://keepachangelog.com/es/1.1.0/). No editar a mano.
+
+"""
+body = """
+{% if version -%}
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else -%}
+## [Unreleased]
+{% endif -%}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | upper_first }}\
+{% if commit.breaking %} **[BREAKING]**{% endif %} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::repo() }}/commit/{{ commit.id }}))
+{%- endfor %}
+{% endfor %}
+{%- macro repo() -%}https://github.com/mdelrio96/ARY1102-MDELRIO{%- endmacro -%}
+"""
+footer = ""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+# Grupos en el orden de Keep a Changelog (el prefijo <!-- n --> solo ordena; se quita con striptags).
+commit_parsers = [
+  { message = "^feat",              group = "<!-- 0 -->Añadido" },
+  { message = "^fix",               group = "<!-- 1 -->Corregido" },
+  { message = "^refactor|^perf",    group = "<!-- 2 -->Cambiado" },
+  { message = "^revert",            group = "<!-- 3 -->Revertido" },
+  { message = "^ci",                group = "<!-- 4 -->CI/CD" },
+  { message = "^docs",              group = "<!-- 5 -->Documentación" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore|^build|^style|^test", group = "<!-- 6 -->Mantenimiento" },
+]
+filter_commits = false
+tag_pattern = "v[0-9].*"
+topo_order = false
+sort_commits = "oldest"

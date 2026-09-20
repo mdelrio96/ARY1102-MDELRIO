@@ -23,7 +23,7 @@ Dentro de cada carpeta se incluyen los archivos correspondientes al desarrollo, 
 ## 📌 Notas
 
 - Este repositorio se irá actualizando conforme se desarrollen nuevas evaluaciones.
-- Cualquier cambio relevante quedará reflejado en el historial de commits.
+- Los commits siguen Conventional Commits (`feat`, `fix`, `docs`, `ci`, `chore`) con el ámbito de la evaluación (`feat(ev1): ...`). A partir de ellos, el workflow `changelog.yaml` genera automáticamente `CHANGELOG.md` (global) y `EV<n>/CHANGELOG.md` (por evaluación) en cada push a `main`; no se editan a mano.
 
 ## 👤 Autor
 
