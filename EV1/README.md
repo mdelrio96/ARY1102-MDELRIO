@@ -2,6 +2,12 @@
 
 Arquitectura TO-BE de tres capas en AWS (Academy Learner Lab) para el catálogo online de FreshBox: VPC `10.0.0.0/22` con seis subredes `/25` en dos AZ, ALB, Auto Scaling Group (2–4 EC2 `t4g.small` con Docker: frontend Nginx + 4 microservicios), EC2 MySQL con AWS Backup y Security Groups por capa. Infraestructura con Terraform, desplegada desde GitHub Actions **sin push** (Actions → Run workflow).
 
+## Diagrama TO-BE
+
+[![Diagrama TO-BE FreshBox](diagramas/D1_FreshBox_TOBE.png)](diagramas/D1_FreshBox_TOBE.png)
+
+Editable en [`diagramas/D1_FreshBox_TOBE.drawio`](diagramas/D1_FreshBox_TOBE.drawio) (draw.io) y publicado también en [Eraser.io](https://app.eraser.io/workspace/gSCDj5OUcicVftci9FlG?diagram=QsxnEutyEokrQdSwhicx&layout=canvas).
+
 ```
 .github/workflows/                 (raíz del repo; GitHub solo los lee ahí)
 ├── ep1-deploy.yaml                EP1 · Desplegar FreshBox (infra + app)   ← Run workflow
