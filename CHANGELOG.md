@@ -27,6 +27,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Diagrama TO-BE D1 de FreshBox ([0023e65](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/0023e658bed74b5edcecc49ebfc126037600d7c0))
 - `2026-09-19` **ev1:** Guia de despliegue de EV1 ([e3c4474](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e3c4474ddd0263431d0f315617e5a47002de777a))
 - `2026-09-19` Enlaza cada evaluacion desde el README principal ([cfd1b4a](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/cfd1b4a2a2cece49aec049970d74746d3b47efbf))
+- `2026-09-19` **ev1:** Muestra el diagrama TO-BE en el README ([4fda194](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4fda194175be4fc534342d85ba8d44eba68a61aa))
 
 ### Mantenimiento
 
