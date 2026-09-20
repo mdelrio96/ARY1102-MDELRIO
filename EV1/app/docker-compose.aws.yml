@@ -1,0 +1,78 @@
+# FreshBox SpA - Compose para EC2 App (EP1). Alternativa manual al user data
+# del Launch Template: mismas 5 imagenes de ECR, mismos nombres de servicio
+# que espera nginx.conf (get-products, create-product, update-product, delete-product).
+#
+#   export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+#   export DB_HOST=10.0.2.10
+#   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+#   docker compose -f docker-compose.aws.yml up -d
+
+x-backend: &backend
+  restart: unless-stopped
+  environment: &db-env
+    DB_HOST: ${DB_HOST:-10.0.2.10}
+    DB_USER: ${DB_USER:-alumno}
+    DB_PASS: ${DB_PASS:-alumno123}
+    DB_NAME: ${DB_NAME:-freshbox}
+    DB_PORT: 3306
+  networks:
+    - freshbox-net
+
+services:
+  frontend:
+    image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com/freshbox-frontend:${IMAGE_TAG:-latest}
+    container_name: freshbox-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - get-products
+      - create-product
+      - update-product
+      - delete-product
+    networks:
+      - freshbox-net
+
+  get-products:
+    <<: *backend
+    image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com/freshbox-get-products:${IMAGE_TAG:-latest}
+    container_name: freshbox-get-products
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      <<: *db-env
+      PORT: 3001
+
+  create-product:
+    <<: *backend
+    image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com/freshbox-create-product:${IMAGE_TAG:-latest}
+    container_name: freshbox-create-product
+    ports:
+      - "127.0.0.1:3002:3002"
+    environment:
+      <<: *db-env
+      PORT: 3002
+
+  update-product:
+    <<: *backend
+    image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com/freshbox-update-product:${IMAGE_TAG:-latest}
+    container_name: freshbox-update-product
+    ports:
+      - "127.0.0.1:3003:3003"
+    environment:
+      <<: *db-env
+      PORT: 3003
+
+  delete-product:
+    <<: *backend
+    image: ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION:-us-east-1}.amazonaws.com/freshbox-delete-product:${IMAGE_TAG:-latest}
+    container_name: freshbox-delete-product
+    ports:
+      - "127.0.0.1:3004:3004"
+    environment:
+      <<: *db-env
+      PORT: 3004
+
+networks:
+  freshbox-net:
+    driver: bridge
