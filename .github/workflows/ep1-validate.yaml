@@ -1,0 +1,49 @@
+# EP1 · CI de validación en cada push/PR que toque EV1: Terraform fmt +
+# validate (sin credenciales ni estado) y docker build de las 5 imágenes sin
+# publicar. Evita que llegue a main un .tf o un Dockerfile roto.
+
+name: EP1 · Validar (terraform + docker build)
+
+on:
+  push:
+    paths: ["EV1/infra/**", "EV1/app/**", ".github/workflows/ep1-*.yaml"]
+  pull_request:
+    paths: ["EV1/infra/**", "EV1/app/**", ".github/workflows/ep1-*.yaml"]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: terraform fmt + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+      - working-directory: EV1/infra/freshbox-ep1
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+  docker:
+    name: docker build ${{ matrix.context }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - microservicioFrontend
+          - microserviciosBackend/get-products
+          - microserviciosBackend/create-product
+          - microserviciosBackend/update-product
+          - microserviciosBackend/delete-product
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: EV1/app/${{ matrix.context }}
+          push: false
