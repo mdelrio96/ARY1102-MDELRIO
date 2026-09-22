@@ -72,4 +72,4 @@ Validar con `terraform output alb_url` → `/` (frontend) y `/api/products` (JSO
 - Solo `us-east-1`; sin creación de roles IAM (`LabRole` / `LabInstanceProfile`).
 - Acceso a instancias por Session Manager (sin key pair).
 - Antes de `terraform destroy` hay que borrar los *recovery points* del vault de Backup (arriba); el workflow *EP1 · Infraestructura* con `destroy` lo hace solo.
-- Las credenciales del lab duran una sesión (~4 h): si la pipeline falla con `ExpiredToken`, actualizar los secretos (`EV1/script/gh-set-aws-secrets.sh`).
+- Las credenciales del lab duran una sesión (~4 h): si la pipeline falla con `ExpiredToken`, renovar los tres secretos con las credenciales nuevas del lab y relanzar.

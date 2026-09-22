@@ -18,7 +18,6 @@ Editable en [`diagramas/D1_FreshBox_TOBE.drawio`](diagramas/D1_FreshBox_TOBE.dra
 EV1/
 ├── infra/freshbox-ep1/            Terraform (main.tf, variables.tf, outputs.tf, templates/, files/)
 ├── app/                           frontend Nginx + 4 microservicios Node + init.sql + compose
-├── script/gh-set-aws-secrets.sh   carga las credenciales del lab en los secretos del repo
 ├── script/bootstrap-tfstate.sh    crea el bucket S3 del estado y la tabla DynamoDB de bloqueo si no existen (tras un reset del lab)
 └── diagramas/                     D1 TO-BE (draw.io + PNG; enlace a Eraser en su README)
 ```
@@ -33,14 +32,14 @@ Las plantillas se invocan con `uses: ./.github/workflows/...` (mismo repo). `ep1
 
 ## Cada sesión del Learner Lab
 
-Las credenciales del lab duran una sesión (~4 h) y no admiten OIDC (no se pueden crear roles IAM); por eso van como secretos del repo y hay que renovarlas:
+Las credenciales del lab duran una sesión (~4 h) y no admiten OIDC (no se pueden crear roles IAM); por eso van como secretos del repo (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`) y se renuevan en cada sesión:
 
-1. Iniciar el lab → **AWS Details → AWS CLI: Show** → pegar el bloque en `~/.aws/credentials`.
-2. Desde la raíz del repo: `./EV1/script/gh-set-aws-secrets.sh`
-3. Actions → **EP1 · Desplegar FreshBox (infra + app)** → Run workflow. El resumen final muestra la URL del ALB.
+1. Iniciar el lab → **AWS Details → AWS CLI: Show**: ahí están los tres valores.
+2. GitHub → **Settings → Secrets and variables → Actions** → actualizar los tres secretos con esos valores.
+3. Actions → **EP1 · Desplegar FreshBox (infra + app)** → Run workflow: backend de estado → infra → app en un solo run. El resumen final muestra la URL del ALB.
 4. Al terminar: Actions → **EP1 · Infraestructura** → `destroy`. Todo desaparece y no consume créditos; solo quedan el bucket de estado (`freshbox-tfstate-870431978422`) y la tabla de bloqueo (`freshbox-tfstate-lock`), vacíos y sin costo. Si un *reset* del lab los borra, el job *backend de estado* los vuelve a crear antes del siguiente `init` (`script/bootstrap-tfstate.sh`; ver `infra/freshbox-ep1/README.md`).
 
-Si un job falla con `ExpiredToken`, repetir el paso 2 y relanzar.
+Si un job falla con `ExpiredToken`, repetir el paso 2 y relanzar. En el PC, el mismo bloque va en `~/.aws/credentials`.
 
 ## Equivalente en local
 

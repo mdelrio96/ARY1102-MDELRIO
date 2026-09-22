@@ -75,7 +75,7 @@ La app se publica con los workflows de la raiz del repo (`.github/workflows/ep1-
 | *EP1 · Desplegar FreshBox (infra + app)* | Actions → Run workflow | 1) `terraform apply` de la infra (plantilla `ep1-provision-freshbox.yaml`), 2) build arm64 de las 5 imagenes, push a ECR, reemplazo gradual de las EC2 App y smoke test por el ALB (plantilla `ep1-deploy-app-ecr.yaml`) |
 | *EP1 · Validar* | push a ramas / PR | `terraform validate` + `docker build` de las 5 imagenes sin publicar |
 
-Requisitos: secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` del Learner Lab (se cargan con `EV1/script/gh-set-aws-secrets.sh` en cada sesion). Para bajar la infraestructura: workflow *EP1 · Infraestructura* → `destroy`.
+Requisitos: secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` del Learner Lab (se renuevan en cada sesion; ver `EV1/README.md`). Para bajar la infraestructura: workflow *EP1 · Infraestructura* → `destroy`.
 
 Cambios respecto a la app original del docente: `js/app.js` llama a `origin + "/api/products"` en AWS (todo entra por el ALB:80 y Nginx enruta), `deploy-containers.sh` usa `--network-alias` y publica los backends solo en `127.0.0.1`, y `docker-compose.aws.yml` permite el despliegue manual con las imagenes de ECR.
 
