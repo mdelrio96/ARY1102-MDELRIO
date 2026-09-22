@@ -11,23 +11,25 @@ Editable en [`diagramas/D1_FreshBox_TOBE.drawio`](diagramas/D1_FreshBox_TOBE.dra
 ```
 .github/workflows/                 (raíz del repo; GitHub solo los lee ahí)
 ├── ep1-deploy.yaml                EP1 · Desplegar FreshBox (infra + app)   ← Run workflow
-├── ep1-provision-freshbox.yaml    EP1 · Infraestructura: apply | destroy | plan (reutilizable + Run workflow)
+├── ep1-provision-freshbox.yaml    EP1 · Infraestructura: backend de estado → apply | destroy | plan (reutilizable + Run workflow)
+├── ep1-bootstrap-tfstate.yaml     EP1 · Backend de estado: bucket S3 + tabla DynamoDB si no existen (reutilizable + Run workflow)
 ├── ep1-deploy-app-ecr.yaml        plantilla: build arm64 → ECR → rolling de EC2 App → smoke test
 └── ep1-validate.yaml              CI: terraform validate + docker build sin publicar
 EV1/
 ├── infra/freshbox-ep1/            Terraform (main.tf, variables.tf, outputs.tf, templates/, files/)
 ├── app/                           frontend Nginx + 4 microservicios Node + init.sql + compose
 ├── script/gh-set-aws-secrets.sh   carga las credenciales del lab en los secretos del repo
+├── script/bootstrap-tfstate.sh    crea el bucket S3 del estado y la tabla DynamoDB de bloqueo si no existen (tras un reset del lab)
 └── diagramas/                     D1 TO-BE (draw.io + PNG; enlace a Eraser en su README)
 ```
 
 ## Flujo de despliegue
 
 ```
-Run workflow "EP1 · Desplegar" ──► infra (terraform apply) ──► app (5× build arm64 → ECR) ──► rolling de EC2 App + curl al ALB
+Run workflow "EP1 · Desplegar" ──► backend de estado (S3 + DynamoDB) ──► infra (terraform apply) ──► app (5× build arm64 → ECR) ──► rolling de EC2 App + curl al ALB
 ```
 
-Las plantillas se invocan con `uses: ./.github/workflows/...` (mismo repo). `ep1-provision-freshbox.yaml` también tiene su propio *Run workflow* para levantar, bajar (`destroy`) o revisar (`plan`) solo la infraestructura.
+Las plantillas se invocan con `uses: ./.github/workflows/...` (mismo repo). `ep1-provision-freshbox.yaml` también tiene su propio *Run workflow* para levantar, bajar (`destroy`) o revisar (`plan`) solo la infraestructura; en cualquiera de los tres casos su primer job es `ep1-bootstrap-tfstate.yaml`, que deja listos el bucket de estado y la tabla de bloqueo antes de `terraform init`. Ese workflow también se puede lanzar solo (*EP1 · Backend de estado*) para preparar el backend antes de levantar nada.
 
 ## Cada sesión del Learner Lab
 
@@ -36,13 +38,14 @@ Las credenciales del lab duran una sesión (~4 h) y no admiten OIDC (no se puede
 1. Iniciar el lab → **AWS Details → AWS CLI: Show** → pegar el bloque en `~/.aws/credentials`.
 2. Desde la raíz del repo: `./EV1/script/gh-set-aws-secrets.sh`
 3. Actions → **EP1 · Desplegar FreshBox (infra + app)** → Run workflow. El resumen final muestra la URL del ALB.
-4. Al terminar: Actions → **EP1 · Infraestructura** → `destroy`. Todo desaparece y no consume créditos; solo queda el bucket de estado vacío (`freshbox-tfstate-870431978422`, creado una vez; ver `infra/freshbox-ep1/README.md`).
+4. Al terminar: Actions → **EP1 · Infraestructura** → `destroy`. Todo desaparece y no consume créditos; solo quedan el bucket de estado (`freshbox-tfstate-870431978422`) y la tabla de bloqueo (`freshbox-tfstate-lock`), vacíos y sin costo. Si un *reset* del lab los borra, el job *backend de estado* los vuelve a crear antes del siguiente `init` (`script/bootstrap-tfstate.sh`; ver `infra/freshbox-ep1/README.md`).
 
 Si un job falla con `ExpiredToken`, repetir el paso 2 y relanzar.
 
 ## Equivalente en local
 
 ```bash
+./EV1/script/bootstrap-tfstate.sh                           # crea bucket de estado y tabla de bloqueo si no existen
 terraform -chdir=EV1/infra/freshbox-ep1 apply
 cd EV1/app && ./scripts/ecr-push.sh && cd ../..
 aws ec2 terminate-instances --instance-ids <id-ec2-app>   # de a una; el ASG la reemplaza (StartInstanceRefresh esta bloqueado en el lab)

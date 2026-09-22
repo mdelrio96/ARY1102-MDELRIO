@@ -17,16 +17,20 @@ terraform {
     }
   }
 
-  # Estado remoto en S3 (bloqueo nativo con use_lockfile). El bucket se crea
-  # UNA sola vez fuera de Terraform (README) y nunca se destruye: la SCP del
-  # Learner Lab impide que el proveedor lea buckets (GetBucketObjectLockConfiguration),
-  # asi que no puede ser un recurso ni importarse. Mismo "terraform init" en el
-  # PC y en GitHub Actions. Para probar sin S3: terraform init -backend=false
+  # Estado remoto en S3 con bloqueo en DynamoDB (formato pedido en el curso) y,
+  # ademas, el lockfile nativo de S3. Terraform avisa en cada init que
+  # dynamodb_table esta obsoleto: es esperable. Ni el bucket ni la tabla pueden
+  # ser recursos de Terraform (el backend los necesita antes del init y la SCP
+  # del Learner Lab impide leer buckets: GetBucketObjectLockConfiguration). Los
+  # crea EV1/script/bootstrap-tfstate.sh antes de cada init (pipeline y local),
+  # asi que un reset del lab no requiere pasos a mano. Mismo "terraform init" en
+  # el PC y en GitHub Actions. Para probar sin S3: terraform init -backend=false
   backend "s3" {
-    bucket       = "freshbox-tfstate-870431978422" # freshbox-tfstate-<ID de cuenta del lab>
-    key          = "freshbox/ep1/terraform.tfstate"
-    region       = "us-east-1"
-    use_lockfile = true
+    bucket         = "freshbox-tfstate-870431978422" # freshbox-tfstate-<ID de cuenta del lab>
+    key            = "freshbox/ep1/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "freshbox-tfstate-lock" # clave de particion LockID (S)
+    use_lockfile   = true
   }
 }
 

@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────
+# EP1 · Backend de estado de Terraform (S3 + DynamoDB) en AWS Academy Learner Lab
+#
+# Crea el bucket del estado y la tabla de bloqueo si no existen; lo que ya
+# existe no se toca. Es la primera etapa de cualquier despliegue:
+# - workflow_call: lo invoca ep1-provision-freshbox.yaml antes de terraform init.
+# - workflow_dispatch: Actions → "EP1 · Backend de estado" → Run workflow, para
+#   dejarlo listo por separado (p. ej. recién reseteado el lab).
+#
+# Mismo comando que en local: ./EV1/script/bootstrap-tfstate.sh
+# Bucket, tabla y región salen del bloque backend de EV1/infra/freshbox-ep1/main.tf.
+# ─────────────────────────────────────────────────────────────
+
+name: EP1 · Backend de estado (S3 + DynamoDB)
+
+on:
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: bucket S3 + tabla DynamoDB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      # La región solo aplica a las credenciales; el script usa la del bloque backend.
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Crear bucket y tabla si no existen
+        run: |
+          {
+            echo "### EP1 — Backend de estado de Terraform"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          bash EV1/script/bootstrap-tfstate.sh | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

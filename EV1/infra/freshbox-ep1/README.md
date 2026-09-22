@@ -29,23 +29,23 @@ EV1/infra/freshbox-ep1/
 
 ## Estado remoto
 
-El estado vive en S3 (`freshbox-tfstate-870431978422`, bloqueo nativo `use_lockfile`), declarado en el bloque `backend` de `main.tf`, así que `terraform init` es idéntico en el PC y en la pipeline. El bucket se crea **una sola vez** y no se destruye nunca (vacío no cuesta); no es parte de la infraestructura que se levanta y baja en cada evaluación.
+El estado vive en S3 (`freshbox-tfstate-870431978422`) con bloqueo en la tabla DynamoDB `freshbox-tfstate-lock` (clave de partición `LockID`, capacidad bajo demanda) y, además, el *lockfile* nativo de S3 (`use_lockfile`). Todo está declarado en el bloque `backend` de `main.tf`, así que `terraform init` es idéntico en el PC y en la pipeline. Terraform avisa en cada `init` que `dynamodb_table` está obsoleto en favor de `use_lockfile`; es esperable y no afecta al despliegue. Ni el bucket ni la tabla forman parte de la infraestructura que se levanta y baja en cada evaluación: `destroy` no los toca y vacíos no cuestan.
 
-> Por qué no lo crea Terraform: la SCP de AWS Academy deniega `s3:GetBucketObjectLockConfiguration`, que el recurso `aws_s3_bucket` consulta siempre al leer (probado con proveedor 5.100 y 6.65). Cualquier bucket gestionado o importado por Terraform falla en este lab.
+> Por qué no los crea Terraform: el backend los necesita antes del `init` y, además, la SCP de AWS Academy deniega `s3:GetBucketObjectLockConfiguration`, que el recurso `aws_s3_bucket` consulta siempre al leer (probado con proveedor 5.100 y 6.65). Cualquier bucket gestionado o importado por Terraform falla en este lab.
 
-Creación única (ya hecha el 19-sep-2026; repetir solo si la cuenta del lab cambia, ajustando el nombre en `main.tf`):
+Los crea `EV1/script/bootstrap-tfstate.sh`, primera etapa de todo despliegue (workflow *EP1 · Backend de estado*, que *EP1 · Infraestructura* invoca como job previo a `terraform init` y que también se puede lanzar solo desde Actions): lee los nombres y la región del bloque `backend`, comprueba que el sufijo del bucket coincide con la cuenta del lab y crea lo que falte (bucket con versionado y acceso público bloqueado; tabla con clave `LockID`); lo que ya existe no se toca. Un *reset* del Learner Lab los borra junto con el resto de la cuenta; el siguiente `apply` los recrea y parte con un estado vacío, coherente con la cuenta vacía. Si la cuenta del lab cambia, el script se detiene y pide actualizar el nombre del bucket en `main.tf` (`freshbox-tfstate-<ID de cuenta>`).
 
 ```bash
-aws s3api create-bucket --bucket freshbox-tfstate-870431978422 --region us-east-1
-aws s3api put-bucket-versioning --bucket freshbox-tfstate-870431978422 --versioning-configuration Status=Enabled
-aws s3api put-public-access-block --bucket freshbox-tfstate-870431978422 --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+./EV1/script/bootstrap-tfstate.sh     # desde la raíz del repo; equivale a s3api create-bucket + put-bucket-versioning + put-public-access-block y dynamodb create-table
 ```
 
 ## Uso local (mismos comandos que la pipeline)
 
 ```bash
+./EV1/script/bootstrap-tfstate.sh   # solo hace falta tras un reset del lab; lo que ya existe no se toca
 cd EV1/infra/freshbox-ep1
 terraform init            # o: terraform init -backend=false  (estado local, solo pruebas)
+                          # si el bloque backend cambió desde el último init: terraform init -reconfigure
 terraform plan
 terraform apply
 ```
@@ -71,5 +71,5 @@ Validar con `terraform output alb_url` → `/` (frontend) y `/api/products` (JSO
 
 - Solo `us-east-1`; sin creación de roles IAM (`LabRole` / `LabInstanceProfile`).
 - Acceso a instancias por Session Manager (sin key pair).
-- Antes de `terraform destroy` hay que borrar los *recovery points* del vault de Backup (arriba); el workflow `destroy.yml` lo hace solo.
+- Antes de `terraform destroy` hay que borrar los *recovery points* del vault de Backup (arriba); el workflow *EP1 · Infraestructura* con `destroy` lo hace solo.
 - Las credenciales del lab duran una sesión (~4 h): si la pipeline falla con `ExpiredToken`, actualizar los secretos (`EV1/script/gh-set-aws-secrets.sh`).

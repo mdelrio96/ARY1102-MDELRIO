@@ -1,7 +1,8 @@
 # ─────────────────────────────────────────────────────────────
 # EP1 · Desplegar FreshBox completo (Actions → "EP1 · Desplegar" → Run workflow).
-# No requiere push: encadena las dos plantillas reutilizables de este repo:
-#   1. infra → terraform apply (VPC, SG, ECR, MySQL, LT + ASG, ALB, Backup)
+# No requiere push: encadena las plantillas reutilizables de este repo:
+#   1. infra → backend de estado (S3 + DynamoDB, si no existe) y luego
+#              terraform apply (VPC, SG, ECR, MySQL, LT + ASG, ALB, Backup)
 #   2. app   → build arm64 + push a ECR + rolling de EC2 App + smoke test
 # Para bajar todo: workflow "EP1 · Infraestructura" con action = destroy.
 # ─────────────────────────────────────────────────────────────
