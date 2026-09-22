@@ -30,4 +30,5 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Guia de despliegue de EV1 ([e3c4474](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e3c4474ddd0263431d0f315617e5a47002de777a))
 - `2026-09-19` **ev1:** Muestra el diagrama TO-BE en el README ([4fda194](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4fda194175be4fc534342d85ba8d44eba68a61aa))
 - `2026-09-21` **ev1:** Secretos del lab renovados a mano; se retira el script de secretos ([24291ea](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/24291eacaa032d05016ea5e90444fa1add36ea6d))
+- `2026-09-22` Explica el .gitattributes (finales de linea LF para scripts y plantillas) ([5e5e21e](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5e5e21e8af30ab811b8fc936ad909e2ee461c675))
 
