@@ -42,14 +42,60 @@ Las credenciales del lab duran una sesión (~4 h) y no admiten OIDC (no se puede
 
 Si un job falla con `ExpiredToken`, repetir el paso 2 y relanzar. En el PC, el mismo bloque va en `~/.aws/credentials`.
 
-## Equivalente en local
+## Ejecución local desde un clon (sin GitHub Actions)
 
-```bash
-./EV1/script/bootstrap-tfstate.sh                           # crea bucket de estado y tabla de bloqueo si no existen
-terraform -chdir=EV1/infra/freshbox-ep1 apply
-cd EV1/app && ./scripts/ecr-push.sh && cd ../..
-aws ec2 terminate-instances --instance-ids <id-ec2-app>   # de a una; el ASG la reemplaza (StartInstanceRefresh esta bloqueado en el lab)
-terraform -chdir=EV1/infra/freshbox-ep1 output alb_url
-```
+Para levantar y probar la infraestructura en otra cuenta de Learner Lab, sin tocar los workflows. Son los mismos comandos que ejecuta la pipeline.
 
-Validación: `curl http://<alb-dns>/api/products`; en una EC2 App (Session Manager) `docker ps` lista los 5 contenedores; en la EC2 MySQL `docker exec -it freshbox-db mysql -u alumno -palumno123 freshbox -e "SELECT id,nombre FROM productos;"`.
+Requisitos: Git, Terraform ≥ 1.10 (la pipeline usa 1.15.8), AWS CLI v2, Docker con Buildx (Docker Desktop lo incluye; en Linux hace falta además `qemu-user-static` para construir imágenes arm64) y bash (en Windows, Git Bash). Un Learner Lab iniciado, con el bloque de **AWS Details → AWS CLI: Show** pegado en `~/.aws/credentials`.
+
+1. Clonar y entrar al repositorio:
+
+   ```bash
+   git clone https://github.com/mdelrio96/ARY1102-MDELRIO.git && cd ARY1102-MDELRIO
+   ```
+
+2. Backend de estado. El nombre del bucket termina en el ID de la cuenta, así que en otra cuenta el script se detiene y dice qué nombre poner en `EV1/infra/freshbox-ep1/main.tf` (línea `bucket = ...`); al ejecutarlo de nuevo crea el bucket y la tabla de bloqueo:
+
+   ```bash
+   ./EV1/script/bootstrap-tfstate.sh
+   ```
+
+   Alternativa para una prueba rápida, sin S3 ni DynamoDB: un archivo *override* que reemplaza el bloque `backend` sin editar `main.tf`; el estado queda en `terraform.tfstate` dentro de la carpeta (`.gitignore` ignora ambos archivos):
+
+   ```bash
+   printf 'terraform {\n  backend "local" {}\n}\n' > EV1/infra/freshbox-ep1/local_override.tf
+   ```
+
+3. Infraestructura (unos 4 minutos):
+
+   ```bash
+   terraform -chdir=EV1/infra/freshbox-ep1 init
+   terraform -chdir=EV1/infra/freshbox-ep1 apply
+   ```
+
+   Si el lab rechaza `t4g`: `apply -var instance_type=t3.small -var mysql_instance_type=t3.small -var instance_arch=x86_64` y, en el paso 4, `PLATFORM=linux/amd64`.
+
+4. Imágenes a ECR (los repositorios los creó Terraform; el script toma cuenta y región de las credenciales):
+
+   ```bash
+   cd EV1/app && ./scripts/ecr-push.sh && cd ../..
+   ```
+
+   En un primer despliegue no hay nada más que hacer: las EC2 App reintentan el `docker pull` hasta 20 minutos y arrancan solas cuando las imágenes están. Solo si ya corrían una versión anterior hay que terminarlas de a una (`aws ec2 terminate-instances --instance-ids <id>`; el ASG las reemplaza, porque el lab bloquea *instance refresh*).
+
+5. Validar:
+
+   ```bash
+   terraform -chdir=EV1/infra/freshbox-ep1 output alb_url
+   ```
+
+   Abrir esa URL: carga el catálogo y `/api/products` devuelve JSON (el Target Group tarda unos minutos en marcar `healthy` los dos targets). Por Session Manager: en una EC2 App, `sudo docker ps` lista los cinco contenedores; en la EC2 MySQL, `sudo docker exec freshbox-db mysql -ualumno -palumno123 freshbox -e "SELECT id, nombre FROM productos;"`.
+
+6. Destruir (antes hay que vaciar el vault de AWS Backup; el workflow lo hace solo):
+
+   ```bash
+   for ARN in $(aws backup list-recovery-points-by-backup-vault --backup-vault-name freshbox-backup-vault --query 'RecoveryPoints[].RecoveryPointArn' --output text); do aws backup delete-recovery-point --backup-vault-name freshbox-backup-vault --recovery-point-arn "$ARN"; done
+   terraform -chdir=EV1/infra/freshbox-ep1 destroy
+   ```
+
+   Quedan solo el bucket de estado y la tabla de bloqueo, vacíos (con el override local, nada).

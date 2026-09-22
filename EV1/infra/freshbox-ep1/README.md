@@ -41,14 +41,17 @@ Los crea `EV1/script/bootstrap-tfstate.sh`, primera etapa de todo despliegue (wo
 
 ## Uso local (mismos comandos que la pipeline)
 
+La guía completa desde un clon (requisitos, backend en otra cuenta, imágenes, validación y destroy) está en `EV1/README.md`. Lo específico de Terraform:
+
 ```bash
-./EV1/script/bootstrap-tfstate.sh   # solo hace falta tras un reset del lab; lo que ya existe no se toca
+./EV1/script/bootstrap-tfstate.sh   # crea bucket y tabla si no existen; en otra cuenta indica el nombre de bucket que va en main.tf
 cd EV1/infra/freshbox-ep1
-terraform init            # o: terraform init -backend=false  (estado local, solo pruebas)
-                          # si el bloque backend cambió desde el último init: terraform init -reconfigure
+terraform init            # si el bloque backend cambió desde el último init: terraform init -reconfigure
 terraform plan
 terraform apply
 ```
+
+`terraform init -backend=false` sirve solo para `validate` (así lo usa `ep1-validate.yaml`): sin backend inicializado, `plan` y `apply` no corren. Para probar con estado local sin tocar `main.tf`: `printf 'terraform {\n  backend "local" {}\n}\n' > local_override.tf` antes del `init` (el bloque debe ir en varias líneas; en una sola, HCL lo rechaza).
 
 Para bajar todo al terminar la evaluación (el vault de Backup debe quedar vacío antes):
 
