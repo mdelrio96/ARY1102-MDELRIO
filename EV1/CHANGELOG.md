@@ -22,6 +22,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Plantilla build + push a ECR + instance refresh ([8b345a6](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8b345a6469f50c5b0a1e691820c8098c8d3ec87b))
 - `2026-09-19` **ev1:** Despliegue completo infra + app desde Run workflow ([49814c5](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/49814c53d3eb993e6572c7bd83d5db2fc09ccb96))
 - `2026-09-19` **ev1:** Validacion de Terraform y Dockerfiles en push y PR ([a985551](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a98555152e875bc77d726438da99cfb6c543bdf4))
+- `2026-09-21` **ev1:** Backend de estado en S3 + DynamoDB como etapa previa a la infraestructura ([5035ea4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5035ea44bada8f3b9ba2a3c7b158d69f5f83a954))
 
 ### Documentación
 
