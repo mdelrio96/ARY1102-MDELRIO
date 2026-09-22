@@ -9,6 +9,7 @@ Arquitectura TO-BE de tres capas en AWS (Academy Learner Lab) para el catálogo 
 Editable en [`diagramas/D1_FreshBox_TOBE.drawio`](diagramas/D1_FreshBox_TOBE.drawio) (draw.io) y publicado también en [Eraser.io](https://app.eraser.io/workspace/gSCDj5OUcicVftci9FlG?diagram=QsxnEutyEokrQdSwhicx&layout=canvas).
 
 ```
+.gitattributes                     finales de línea LF en todo el repo: los .sh y .tpl corren en Linux (ver README raíz)
 .github/workflows/                 (raíz del repo; GitHub solo los lee ahí)
 ├── ep1-deploy.yaml                EP1 · Desplegar FreshBox (infra + app)   ← Run workflow
 ├── ep1-provision-freshbox.yaml    EP1 · Infraestructura: backend de estado → apply | destroy | plan (reutilizable + Run workflow)

@@ -24,6 +24,7 @@ Dentro de cada carpeta se incluyen los archivos correspondientes al desarrollo, 
 
 - Este repositorio se irá actualizando conforme se desarrollen nuevas evaluaciones.
 - Los commits siguen Conventional Commits (`feat`, `fix`, `docs`, `ci`, `chore`) con el ámbito de la evaluación (`feat(ev1): ...`). A partir de ellos, el workflow `changelog.yaml` genera automáticamente `CHANGELOG.md` (global) y `EV<n>/CHANGELOG.md` (por evaluación) en cada push a `main`; no se editan a mano.
+- `.gitattributes` fija finales de línea LF en todo el repositorio (`* text=auto eol=lf`, y explícito para `*.sh` y `*.tpl`) y marca como binarios `png`, `pdf` y `zip`. Los scripts y las plantillas de *user data* corren en Linux (runners de GitHub, EC2) y se editan en Windows: con CRLF fallarían con `$'\r': command not found`. No depende del `core.autocrlf` de cada máquina, así que conviene no borrarlo.
 
 ## 👤 Autor
 
