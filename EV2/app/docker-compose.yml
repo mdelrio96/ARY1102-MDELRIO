@@ -1,0 +1,90 @@
+# FreshBox SpA - Prueba local de EP2 (mismas imagenes que van a EKS).
+# El frontend usa la misma plantilla de Nginx que en el cluster: aqui resuelve
+# los backends con el DNS de Docker (127.0.0.11) y sus nombres cortos.
+#   docker compose up -d --build   ->  http://localhost:8080
+
+x-backend: &backend
+  depends_on:
+    db:
+      condition: service_healthy
+  networks:
+    - freshbox-net
+
+x-db-env: &db-env
+  DB_HOST: db
+  DB_USER: alumno
+  DB_PASS: alumno123
+  DB_NAME: freshbox
+  DB_PORT: 3306
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: freshbox-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: alumno
+      MYSQL_PASSWORD: alumno123
+      MYSQL_DATABASE: freshbox
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - freshbox-net
+
+  frontend:
+    build: ./microservicioFrontend
+    container_name: freshbox-frontend
+    environment:
+      NGINX_RESOLVER: 127.0.0.11
+      SVC_SUFFIX: ""
+    ports:
+      - "8080:80"
+    networks:
+      - freshbox-net
+
+  get-products:
+    <<: *backend
+    build: ./microserviciosBackend/get-products
+    container_name: freshbox-get-products
+    environment:
+      <<: *db-env
+      PORT: 3001
+
+  create-product:
+    <<: *backend
+    build: ./microserviciosBackend/create-product
+    container_name: freshbox-create-product
+    environment:
+      <<: *db-env
+      PORT: 3002
+
+  update-product:
+    <<: *backend
+    build: ./microserviciosBackend/update-product
+    container_name: freshbox-update-product
+    environment:
+      <<: *db-env
+      PORT: 3003
+
+  delete-product:
+    <<: *backend
+    build: ./microserviciosBackend/delete-product
+    container_name: freshbox-delete-product
+    environment:
+      <<: *db-env
+      PORT: 3004
+
+volumes:
+  mysql_data:
+
+networks:
+  freshbox-net:
+    driver: bridge

@@ -1,0 +1,38 @@
+# FreshBox SpA - Nginx del frontend (EP2)
+# Sirve la web y reparte /api/products por metodo HTTP a los 4 microservicios.
+# El ALB solo llega a este pod (:80); los backends son Services ClusterIP.
+#
+# Plantilla: al arrancar, la imagen oficial de nginx reemplaza ${NGINX_RESOLVER}
+# y ${SVC_SUFFIX} con las variables de entorno (envsubst) y deja el resultado en
+# /etc/nginx/conf.d/default.conf. Las variables propias de Nginx no se tocan.
+#   EKS (valores del Dockerfile): DNS del cluster, Services del namespace freshbox
+#   docker compose: DNS interno de Docker (127.0.0.11) y nombres cortos
+
+map $request_method $product_backend {
+    default get-products${SVC_SUFFIX}:3001;
+    POST    create-product${SVC_SUFFIX}:3002;
+    PUT     update-product${SVC_SUFFIX}:3003;
+    DELETE  delete-product${SVC_SUFFIX}:3004;
+}
+
+server {
+    listen 80;
+    server_name localhost;
+
+    # Con una variable en proxy_pass, Nginx resuelve el nombre en cada peticion:
+    # arranca aunque los backends aun no existan y sigue al Service si cambia.
+    resolver ${NGINX_RESOLVER} valid=10s ipv6=off;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /api/products {
+        proxy_pass http://$product_backend$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+# 2026 - Disenador asignatura: Ignacio A. Pastenet M. (adaptado a EKS para EP2)
