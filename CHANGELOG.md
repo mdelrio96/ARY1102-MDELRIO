@@ -31,6 +31,8 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` Fecha de cada cambio en el changelog ([550aa56](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/550aa56be028f0fecb44bdb37036443bee283a38))
 - `2026-09-21` **ev1:** Backend de estado en S3 + DynamoDB como etapa previa a la infraestructura ([5035ea4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5035ea44bada8f3b9ba2a3c7b158d69f5f83a954))
 - `2026-10-24` **ev2:** Workflows de infraestructura, despliegue en EKS y validacion ([a2d93a0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a2d93a0e33537ec63b0cd0336dd8ef33211f4059))
+- `2026-10-24` **ev1:** Un solo workflow para EP1 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([a8e7d67](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a8e7d677a7fb74732f074e62ed418fee33095105))
+- `2026-10-24` **ev2:** Un solo workflow para EP2 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([e63d90b](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e63d90bdff560d38d67328eb95e5e824fb7a6f9c))
 
 ### Documentación
 
@@ -44,6 +46,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-22` **ev1:** Guia de ejecucion local desde un clon (otra cuenta, override de backend, validacion y destroy) ([4fe1187](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4fe118795f42e06acec271bec1cc164c65b4e88b))
 - `2026-10-24` **ev2:** Diagrama TO-BE D1 de FreshBox con EKS y RDS Multi-AZ ([3f77339](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3f7733945263882f5e1b0bcea94b994af3e9990d))
 - `2026-10-24` **ev2:** Guia de despliegue de EV2 y enlace desde el README principal ([0cdf9d8](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/0cdf9d8f00a47063f9f8cee1c144159690f22b3d))
+- `2026-10-24` Un workflow por evaluacion en el README principal ([95f66b3](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/95f66b3b78a855b460d73166ee507b58a7810f69))
 
 ### Mantenimiento
 
