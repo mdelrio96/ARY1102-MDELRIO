@@ -33,6 +33,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-10-24` **ev2:** Workflows de infraestructura, despliegue en EKS y validacion ([a2d93a0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a2d93a0e33537ec63b0cd0336dd8ef33211f4059))
 - `2026-10-24` **ev1:** Un solo workflow para EP1 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([a8e7d67](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a8e7d677a7fb74732f074e62ed418fee33095105))
 - `2026-10-24` **ev2:** Un solo workflow para EP2 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([e63d90b](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e63d90bdff560d38d67328eb95e5e824fb7a6f9c))
+- `2026-10-24` Nombres fijos en los jobs y titulo de cada run con la accion elegida ([33360f1](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/33360f156707c7f0f91786e1cd502a2f780c7c57))
 
 ### Documentación
 

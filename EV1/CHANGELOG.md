@@ -24,6 +24,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Validacion de Terraform y Dockerfiles en push y PR ([a985551](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a98555152e875bc77d726438da99cfb6c543bdf4))
 - `2026-09-21` **ev1:** Backend de estado en S3 + DynamoDB como etapa previa a la infraestructura ([5035ea4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5035ea44bada8f3b9ba2a3c7b158d69f5f83a954))
 - `2026-10-24` **ev1:** Un solo workflow para EP1 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([a8e7d67](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a8e7d677a7fb74732f074e62ed418fee33095105))
+- `2026-10-24` Nombres fijos en los jobs y titulo de cada run con la accion elegida ([33360f1](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/33360f156707c7f0f91786e1cd502a2f780c7c57))
 
 ### Documentación
 
