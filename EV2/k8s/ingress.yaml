@@ -5,6 +5,10 @@
 # target-type ip: el ALB registra directamente las IP de los pods frontend de
 # ambas AZ. <SG_ALB_ID> = freshbox-sg-alb, creado por Terraform (80/443 desde
 # Internet); freshbox-sg-eks solo acepta 80/443 desde ese grupo.
+# Sin la anotación alb.ingress.kubernetes.io/tags: la política que usa Auto Mode
+# (AmazonEKSLoadBalancingPolicy, en LabEksClusterRole) solo deja crear el ALB,
+# el listener y sus reglas con etiquetas eks:* e ingress.eks.amazonaws.com/*;
+# con Project/Env/Layer el controlador recibe AccessDenied en CreateRule.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -17,7 +21,6 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
     alb.ingress.kubernetes.io/security-groups: <SG_ALB_ID>
     alb.ingress.kubernetes.io/healthcheck-path: /
-    alb.ingress.kubernetes.io/tags: Project=FreshBox,Env=EP2,Layer=web
 spec:
   ingressClassName: freshbox-alb
   rules:

@@ -57,6 +57,7 @@ EV2/
 - **Escalado de nodos.** El mínimo y el máximo del Node Group son límites. Para que agregue nodos por sí solo hace falta un Cluster Autoscaler, que necesita permisos IAM que el lab no da. En la demostración se escala a mano (abajo) y el HPA es el escalado automático.
 - **API de EKS pública con autenticación IAM** (`0.0.0.0/0`), para que la pipeline de GitHub pueda usar `kubectl`. Se puede limitar con `eks_public_access_cidrs`.
 - **HTTP sin TLS.** El SG-ALB permite 443 como pide la pauta, pero el lab no tiene dominio ni certificado ACM para un listener HTTPS.
+- **El ALB no lleva etiquetas propias** (`Project`, `Env`...). Auto Mode crea el ALB, el listener y sus reglas con `LabEksClusterRole`, y su política (`AmazonEKSLoadBalancingPolicy`) solo acepta claves `eks:eks-cluster-name` e `ingress.eks.amazonaws.com/*` en esas creaciones. Con la anotación `alb.ingress.kubernetes.io/tags` el controlador recibe `AccessDenied` en `CreateRule`.
 - **Un NAT Gateway**, igual que en EV1. Solo lo usa el tráfico que sale de los nodos; los usuarios entran por el IGW al ALB.
 
 ## Cada sesión del Learner Lab (GitHub Actions)
@@ -106,12 +107,17 @@ Prueba local de la app, sin AWS: `cd EV2/app && docker compose up -d --build` �
 | Métricas | `kubectl top nodes` · `kubectl top pods -n freshbox` · CloudWatch → Container Insights |
 | Escalar el Node Group | `aws eks update-nodegroup-config --cluster-name freshbox-cluster --nodegroup-name freshbox-ng --scaling-config minSize=2,maxSize=4,desiredSize=4` |
 
-## Pendiente de confirmar en el lab
+## Estado en el Learner Lab
 
-El código valida con `terraform validate`, los manifiestos son YAML válido y los scripts pasan `bash -n`; nada de esto se ha aplicado todavía en una cuenta. Lo que depende del lab:
+Primer despliegue completo (2026-10-24, *EP2 · Desplegar*):
 
+- Terraform creó la red, RDS Multi-AZ y el clúster con los add-ons administrados (vpc-cni, kube-proxy, CoreDNS, Metrics Server, Container Insights): 3 nodos `t4g.small` arm64 `Ready` con Kubernetes 1.34.
+- El Job `migrar-datos-ep1` terminó, los 10 pods quedaron `Running` repartidos en los 3 nodos y los 5 HPA leen la CPU de los pods.
+- El ALB `freshbox-eks-alb` se creó (Auto Mode respetó el nombre), pero el controlador no pudo crear la regla del listener: `AccessDenied` en `elasticloadbalancing:CreateRule`, por las etiquetas propias del Ingress (ver decisiones). Se quitaron, y `aplicar-k8s.sh` ahora borra y recrea un Ingress que quedó sin DNS.
+
+Por confirmar en el siguiente despliegue:
+
+- **CRUD por el ALB** y que el ALB quede con `freshbox-sg-alb` (EC2 → Load Balancers → `freshbox-eks-alb` → Security).
 - **Container Insights.** El agente usa el rol del nodo. Revisar si `LabEksNodeRole` tiene `CloudWatchAgentServerPolicy`:
   `aws iam list-attached-role-policies --role-name "$(aws iam list-roles --query "Roles[?contains(RoleName,'LabEksNodeRole')].RoleName" --output text)"`.
   Si no la tiene y el lab no deja adjuntarla, los pods del add-on corren pero no publican métricas; la infografía de la pauta permite documentar la restricción y mostrar `kubectl top` y las métricas del ALB y de RDS.
-- **SG-ALB en el Ingress.** Que Auto Mode respete la anotación `alb.ingress.kubernetes.io/security-groups` y el nombre `freshbox-eks-alb`. Si la ignora, crea sus propios grupos y la aplicación funciona igual, pero el ALB no queda con `freshbox-sg-alb`.
-- **Add-ons administrados.** El clúster se crea con `bootstrap_self_managed_addons = false` e instala vpc-cni, kube-proxy y CoreDNS como add-ons; el docente usó los autogestionados. Si la creación falla por eso, se vuelve al valor por defecto y se quitan esos tres recursos de `eks.tf`.

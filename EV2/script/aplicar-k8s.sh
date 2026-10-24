@@ -104,6 +104,14 @@ for app in "${APPS[@]}"; do
 done
 
 # --- 5. ALB (Ingress de EKS Auto Mode) y HPA ---
+# Un Ingress que existe pero nunca recibio DNS quedo a medio crear (por ejemplo,
+# tras un AccessDenied del controlador). Se borra para que el controlador retire
+# lo que alcanzo a crear y arme el ALB desde cero con la version actual.
+if kubectl get ingress freshbox-ingress -n "$NS" > /dev/null 2>&1 \
+   && [ -z "$(kubectl get ingress freshbox-ingress -n "$NS" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" ]; then
+  echo "El Ingress existe sin DNS del ALB: se borra y se vuelve a crear"
+  kubectl delete ingress freshbox-ingress -n "$NS" --wait=true --timeout=300s
+fi
 kubectl apply -f "$OUT/ingressclass.yaml" -f "$OUT/ingress.yaml"
 for app in "${APPS[@]}"; do
   kubectl apply -f "$OUT/$app-hpa.yaml"
