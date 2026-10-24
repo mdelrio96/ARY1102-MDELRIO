@@ -11,6 +11,10 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` **ev1:** Infraestructura FreshBox con Terraform ([22d7392](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/22d73927b989068efa083bdaaba16c3a9658a75d))
 - `2026-09-19` **ev1:** Aplicacion FreshBox adaptada al ALB unico ([c21bb00](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/c21bb00f0f6f047291002b821b77e34e5c3798a6))
 - `2026-09-19` **ev1:** Script para cargar credenciales del Learner Lab en GitHub ([3168b66](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3168b6644c59ac22bd49d4bdaa23031dbb521f9a))
+- `2026-10-24` **ev2:** Aplicacion FreshBox para EKS (Nginx enruta por metodo HTTP, Node 22 sin root) ([8941ff7](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8941ff7036e87f904a59e58142bd4a0e983aade9))
+- `2026-10-24` **ev2:** Manifiestos de Kubernetes (Deployments, Services, HPA, PDB, Ingress y migracion de datos de EP1) ([c9c4ca8](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/c9c4ca8d5d10eab2f15e566904ff5329bc94a27d))
+- `2026-10-24` **ev2:** Infraestructura con Terraform (red, SG por capa, ECR, EKS opcional y RDS Multi-AZ) ([8b5e4bc](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8b5e4bc680354986e1e2b7d295f8777d6451bb52))
+- `2026-10-24` **ev2:** Scripts de despliegue en EKS, prueba CRUD, carga para el HPA y retiro del ALB ([aa2ae43](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/aa2ae4392f14e0aae1858aabaa5db351480d6d2d))
 
 ### Corregido
 
@@ -25,6 +29,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-19` Changelog automatico por evaluacion con git-cliff ([4ad477d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4ad477dadd0982af490623874d20c228a65840f7))
 - `2026-09-19` Fecha de cada cambio en el changelog ([550aa56](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/550aa56be028f0fecb44bdb37036443bee283a38))
 - `2026-09-21` **ev1:** Backend de estado en S3 + DynamoDB como etapa previa a la infraestructura ([5035ea4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5035ea44bada8f3b9ba2a3c7b158d69f5f83a954))
+- `2026-10-24` **ev2:** Workflows de infraestructura, despliegue en EKS y validacion ([a2d93a0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a2d93a0e33537ec63b0cd0336dd8ef33211f4059))
 
 ### Documentación
 
@@ -36,6 +41,8 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-09-21` **ev1:** Secretos del lab renovados a mano; se retira el script de secretos ([24291ea](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/24291eacaa032d05016ea5e90444fa1add36ea6d))
 - `2026-09-22` Explica el .gitattributes (finales de linea LF para scripts y plantillas) ([5e5e21e](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/5e5e21e8af30ab811b8fc936ad909e2ee461c675))
 - `2026-09-22` **ev1:** Guia de ejecucion local desde un clon (otra cuenta, override de backend, validacion y destroy) ([4fe1187](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4fe118795f42e06acec271bec1cc164c65b4e88b))
+- `2026-10-24` **ev2:** Diagrama TO-BE D1 de FreshBox con EKS y RDS Multi-AZ ([3f77339](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3f7733945263882f5e1b0bcea94b994af3e9990d))
+- `2026-10-24` **ev2:** Guia de despliegue de EV2 y enlace desde el README principal ([0cdf9d8](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/0cdf9d8f00a47063f9f8cee1c144159690f22b3d))
 
 ### Mantenimiento
 
