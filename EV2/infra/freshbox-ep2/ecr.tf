@@ -1,7 +1,7 @@
 # ---------- ECR: 5 repositorios (frontend + 4 microservicios) ----------
 # Mismos nombres que en EV1 (freshbox-<servicio>): EP2 reemplaza a EP1, asi que
 # los dos stacks no se levantan a la vez. Las imagenes linux/arm64 las publica
-# el workflow ep2-deploy-app.yaml o EV2/app/scripts/ecr-push.sh.
+# el workflow ep2-freshbox.yaml (desplegar o actualizar-app) o EV2/app/scripts/ecr-push.sh.
 
 resource "aws_ecr_repository" "app" {
   for_each = toset(local.services)

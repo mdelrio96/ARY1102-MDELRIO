@@ -32,7 +32,7 @@ tf() { terraform -chdir="$TF_DIR" output -raw "$1"; }
 if [ "$(tf eks_enabled)" != "true" ]; then
   echo "La infraestructura se creo sin cluster EKS (create_eks = false)."
   echo "Agregalo con: terraform -chdir=EV2/infra/freshbox-ep2 apply -var create_eks=true"
-  echo "o con el workflow EP2 · Infraestructura (apply, crear_eks marcado)."
+  echo "o con el workflow EP2 · FreshBox (accion infraestructura con crear_eks marcado, o desplegar)."
   exit 1
 fi
 REGION="$(tf aws_region)"

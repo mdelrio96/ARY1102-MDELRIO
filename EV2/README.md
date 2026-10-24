@@ -14,10 +14,7 @@ Editable en [`diagramas/D1_FreshBox_EKS_TOBE.drawio`](diagramas/D1_FreshBox_EKS_
 
 ```
 .github/workflows/                     (raíz del repo)
-├── ep2-deploy.yaml                    EP2 · Desplegar FreshBox en EKS (infra + app)   ← Run workflow
-├── ep2-provision-freshbox.yaml        EP2 · Infraestructura: apply | destroy | plan, con o sin clúster EKS (opción crear_eks)
-├── ep2-deploy-app.yaml                EP2 · Build arm64 → ECR → manifiestos en EKS → prueba CRUD (reutilizable + Run workflow)
-└── ep2-validate.yaml                  CI: terraform validate, docker build, kubeconform y shellcheck
+└── ep2-freshbox.yaml                  EP2 · FreshBox (EKS + RDS): único workflow de EP2 ← Run workflow (acción a elegir)
 EV2/
 ├── infra/freshbox-ep2/                Terraform: main, network, security, ecr, eks, rds, variables, outputs
 ├── app/                               frontend Nginx + 4 microservicios Node + init.sql + docker-compose.yml
@@ -62,13 +59,24 @@ EV2/
 
 ## Cada sesión del Learner Lab (GitHub Actions)
 
+Todo se hace desde un solo workflow, **EP2 · FreshBox (EKS + RDS)** (`ep2-freshbox.yaml`), eligiendo la acción al lanzarlo:
+
+| Acción | Hace | Tiempo aprox. |
+|---|---|---|
+| `desplegar` | `terraform apply` con el clúster → 5 imágenes arm64 a ECR → manifiestos en EKS → prueba CRUD por el ALB. Sirve también para actualizar todo | 35–45 min la primera vez |
+| `actualizar-app` | solo imágenes, manifiestos y prueba CRUD (la infraestructura ya existe) | 8–12 min |
+| `infraestructura` | solo `terraform apply`; con **crear_eks** desmarcado deja solo la base (red, SG, ECR y RDS) y quita el clúster si existía | 20–30 min |
+| `plan` | `terraform plan`, sin aplicar | 1–2 min |
+| `eliminar` | retira el ALB del Ingress, `terraform destroy` y borra los logs de Container Insights | 15–20 min |
+| `validar` | terraform validate, docker build arm64, kubeconform y shellcheck (también corre solo en cada push o PR que toque EV2) | 5 min |
+
 1. Iniciar el lab → **AWS Details → AWS CLI: Show** y actualizar los secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` y `AWS_SESSION_TOKEN` del repositorio (igual que en EV1).
-2. Actions → **EP2 · Desplegar FreshBox en EKS (infra + app)** → Run workflow. Tarda unos 35 a 40 minutos: EKS y RDS Multi-AZ se crean en paralelo, luego los nodos, las imágenes y los manifiestos. El resumen del run muestra la URL del ALB y la prueba CRUD.
-3. Al terminar: Actions → **EP2 · Infraestructura** → `destroy`. Primero retira el ALB del Ingress, después destruye con Terraform y borra los logs de Container Insights.
+2. Actions → **EP2 · FreshBox (EKS + RDS)** → Run workflow → `desplegar`. EKS y RDS Multi-AZ se crean en paralelo, luego los nodos, las imágenes y los manifiestos. El resumen del run muestra la URL del ALB y la prueba CRUD.
+3. Al terminar: el mismo workflow con `eliminar`.
 
-**Infraestructura en dos etapas (opcional).** *EP2 · Infraestructura* → `apply` tiene la casilla **crear_eks**, marcada por defecto. Desmarcada, crea solo la base: red, Security Groups, ECR y RDS Multi-AZ. Un segundo `apply` con la casilla marcada agrega el clúster EKS con su Node Group y add-ons. Desmarcarla en una sesión posterior quita el clúster (antes retira el ALB del Ingress) y conserva la base y los datos de RDS, lo que ahorra créditos mientras no se trabaja con Kubernetes. *EP2 · Desplegar* siempre crea el clúster, porque la app lo necesita.
+**Infraestructura en dos etapas (opcional).** La acción `infraestructura` con **crear_eks** desmarcado crea solo la base; otra vez con la casilla marcada agrega el clúster EKS con su Node Group y add-ons. Desmarcarla con el clúster arriba lo quita (antes retira el ALB del Ingress) y conserva la base y los datos de RDS, lo que ahorra créditos mientras no se trabaja con Kubernetes. `desplegar` siempre crea el clúster, porque la app lo necesita.
 
-Si solo cambió la app: **EP2 · Build + Push ECR + despliegue en EKS** → Run workflow. Si un job falla con `ExpiredToken`, se renuevan los secretos y se relanza.
+Si un job falla con `ExpiredToken`, se renuevan los secretos y se relanza.
 
 ## Ejecución local desde un clon
 
@@ -109,7 +117,7 @@ Prueba local de la app, sin AWS: `cd EV2/app && docker compose up -d --build` �
 
 ## Estado en el Learner Lab
 
-Primer despliegue completo (2026-10-24, *EP2 · Desplegar*):
+Primer despliegue completo (2026-10-24, acción `desplegar`):
 
 - Terraform creó la red, RDS Multi-AZ y el clúster con los add-ons administrados (vpc-cni, kube-proxy, CoreDNS, Metrics Server, Container Insights): 3 nodos `t4g.small` arm64 `Ready` con Kubernetes 1.34.
 - El Job `migrar-datos-ep1` terminó, los 10 pods quedaron `Running` repartidos en los 3 nodos y los 5 HPA leen la CPU de los pods.
