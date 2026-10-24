@@ -1,0 +1,341 @@
+# ─────────────────────────────────────────────────────────────
+# EP1 · FreshBox en EC2 + Docker (AWS Academy Learner Lab)
+# Único workflow de la evaluación. Actions → "EP1 · FreshBox (EC2 + Docker)" →
+# Run workflow → acción:
+#   desplegar        Terraform apply (VPC, SG, ECR, MySQL, LT + ASG, ALB, Backup) +
+#                    imágenes a ECR + rolling de las EC2 App + smoke test por el ALB
+#   actualizar-app   solo imágenes a ECR + rolling de las EC2 App + smoke test
+#   infraestructura  solo Terraform apply
+#   plan             muestra qué cambiaría Terraform, sin aplicar
+#   eliminar         vacía el vault de AWS Backup y terraform destroy
+#   validar          las mismas revisiones que corren solas en cada push/PR a EV1
+# En push y pull request que toquen EV1 corre solo la validación (sin credenciales).
+#
+# Antes de cada terraform init se asegura el backend de estado: bucket S3 + tabla
+# DynamoDB (EV1/script/bootstrap-tfstate.sh). Mismos comandos que en local:
+#   terraform -chdir=EV1/infra/freshbox-ep1 init / plan / apply | destroy
+# ─────────────────────────────────────────────────────────────
+
+name: EP1 · FreshBox (EC2 + Docker)
+
+on:
+  push:
+    paths: ["EV1/infra/**", "EV1/app/**", ".github/workflows/ep1-*.yaml"]
+  pull_request:
+    paths: ["EV1/infra/**", "EV1/app/**", ".github/workflows/ep1-*.yaml"]
+  workflow_dispatch:
+    inputs:
+      accion:
+        description: "desplegar (todo) · actualizar-app · infraestructura · plan · eliminar · validar"
+        required: true
+        type: choice
+        options: [desplegar, actualizar-app, infraestructura, plan, eliminar, validar]
+        default: desplegar
+      instance_type:
+        description: Tipo EC2 capa App y MySQL (t4g.small Graviton; fallback t3.small)
+        required: true
+        type: string
+        default: t4g.small
+      instance_arch:
+        description: Arquitectura AMI e imágenes (arm64 para t4g, x86_64 para t3)
+        required: true
+        type: choice
+        options: [arm64, x86_64]
+        default: arm64
+      asg_max_size:
+        description: Máximo de instancias del ASG
+        required: true
+        type: number
+        default: 4
+      image_tag:
+        description: Tag de las imágenes (además de latest)
+        required: true
+        type: string
+        default: latest
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_DIR: EV1/infra/freshbox-ep1
+  APP_DIR: EV1/app
+  PROJECT: freshbox
+
+jobs:
+  # ═══════════════ Validación: push, PR o acción "validar" ═══════════════
+  # Terraform fmt + validate (sin credenciales ni estado) y docker build de las 5
+  # imágenes sin publicar: evita que llegue a main un .tf o un Dockerfile roto.
+
+  validar-terraform:
+    name: validar · terraform fmt + validate
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+      - working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+  validar-docker:
+    name: validar · docker build ${{ matrix.context }}
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - microservicioFrontend
+          - microserviciosBackend/get-products
+          - microserviciosBackend/create-product
+          - microserviciosBackend/update-product
+          - microserviciosBackend/delete-product
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/${{ matrix.context }}
+          push: false
+
+  # ═══════════════ Infraestructura: desplegar, infraestructura, plan, eliminar ═══════════════
+
+  infra:
+    name: terraform ${{ inputs.accion == 'plan' && 'plan' || (inputs.accion == 'eliminar' && 'destroy' || 'apply') }}
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["desplegar","infraestructura","plan","eliminar"]'), inputs.accion)
+    runs-on: ubuntu-latest
+    # Nunca dos operaciones sobre el mismo estado a la vez.
+    concurrency:
+      group: freshbox-ep1-terraform
+      cancel-in-progress: false
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_aws_region: us-east-1
+      TF_VAR_instance_type: ${{ inputs.instance_type }}
+      TF_VAR_mysql_instance_type: ${{ inputs.instance_type }}
+      TF_VAR_instance_arch: ${{ inputs.instance_arch }}
+      TF_VAR_asg_max_size: ${{ inputs.asg_max_size }}
+      TF_VAR_image_tag: ${{ inputs.image_tag }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      # Primera etapa: bucket de estado + tabla de bloqueo (idempotente), antes de
+      # que Terraform toque la cuenta (p. ej. tras un reset del lab).
+      - name: Backend de estado (S3 + DynamoDB si no existen)
+        run: |
+          {
+            echo "### EP1 — Backend de estado de Terraform"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          bash EV1/script/bootstrap-tfstate.sh | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform fmt + validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform validate
+
+      - name: Terraform plan
+        if: inputs.accion == 'plan'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform plan -input=false -no-color | tee plan.txt
+          { echo "### terraform plan"; echo '```'; tail -n 250 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform apply
+        if: inputs.accion == 'desplegar' || inputs.accion == 'infraestructura'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -input=false -auto-approve
+
+      # AWS Backup no deja borrar un vault con recovery points y Terraform no
+      # los gestiona: se eliminan antes del destroy.
+      - name: Vaciar el vault de AWS Backup
+        if: inputs.accion == 'eliminar'
+        run: |
+          VAULT=freshbox-backup-vault
+          if aws backup describe-backup-vault --backup-vault-name "$VAULT" > /dev/null 2>&1; then
+            for ARN in $(aws backup list-recovery-points-by-backup-vault \
+                           --backup-vault-name "$VAULT" \
+                           --query 'RecoveryPoints[].RecoveryPointArn' --output text); do
+              echo "Borrando $ARN"
+              aws backup delete-recovery-point --backup-vault-name "$VAULT" --recovery-point-arn "$ARN"
+            done
+          fi
+
+      - name: Terraform destroy
+        if: inputs.accion == 'eliminar'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform destroy -input=false -auto-approve
+
+      - name: Resumen
+        if: inputs.accion == 'desplegar' || inputs.accion == 'infraestructura'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          {
+            echo "### EP1 — Infraestructura lista"
+            echo ""
+            echo "**Frontend por el ALB:** http://$(terraform output -raw alb_dns_name)"
+            echo ""
+            echo "Las EC2 App esperan las imágenes en ECR (reintentan hasta 20 min). Con la acción *infraestructura*, publícalas después con *actualizar-app*."
+            echo ""
+            echo '```'; terraform output; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ═══════════════ Aplicación: desplegar, actualizar-app ═══════════════
+  # Construye las 5 imágenes de EV1/app para la arquitectura elegida, las publica
+  # en ECR (repos creados por Terraform) y reemplaza las EC2 App de a una para que
+  # arranquen con la versión nueva (rolling manual: la SCP del lab bloquea
+  # StartInstanceRefresh). Termina con un smoke test por el ALB.
+
+  build:
+    name: app · build+push ${{ matrix.service }}
+    needs: infra
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && (inputs.accion == 'desplegar' || inputs.accion == 'actualizar-app') && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            context: microservicioFrontend
+          - service: get-products
+            context: microserviciosBackend/get-products
+          - service: create-product
+            context: microserviciosBackend/create-product
+          - service: update-product
+            context: microserviciosBackend/update-product
+          - service: delete-product
+            context: microserviciosBackend/delete-product
+    env:
+      PLATFORM: ${{ inputs.instance_arch == 'x86_64' && 'linux/amd64' || 'linux/arm64' }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # QEMU permite construir arm64 en el runner x86_64.
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push ${{ matrix.service }} (${{ env.PLATFORM }})
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/${{ matrix.context }}
+          platforms: ${{ env.PLATFORM }}
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.PROJECT }}-${{ matrix.service }}:latest
+            ${{ steps.ecr.outputs.registry }}/${{ env.PROJECT }}-${{ matrix.service }}:${{ inputs.image_tag }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+      - name: Resumen
+        run: echo "- \`${{ env.PROJECT }}-${{ matrix.service }}\` → \`latest\`, \`${{ inputs.image_tag }}\` (${{ env.PLATFORM }})" >> "$GITHUB_STEP_SUMMARY"
+
+  rollout:
+    name: app · rolling de EC2 App + smoke test
+    needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Rolling manual: la SCP del Learner Lab deniega autoscaling:StartInstanceRefresh,
+      # asi que se termina cada EC2 App sana de a una (ec2 terminate-instances) y se
+      # espera a que el ASG levante el reemplazo y quede healthy en el Target Group
+      # antes de seguir. Las instancias aun no sanas (esperando imagenes en el primer
+      # despliegue) no se tocan: su user data reintenta el pull y arranca con la
+      # version recien publicada.
+      - name: Reemplazo gradual de las EC2 App
+        run: |
+          P="$PROJECT"
+          TG=$(aws elbv2 describe-target-groups --names "$P-tg-web" \
+                 --query 'TargetGroups[0].TargetGroupArn' --output text)
+          DESIRED=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "$P-asg-app" \
+                      --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          healthy() { aws elbv2 describe-target-health --target-group-arn "$TG" \
+                        --query "TargetHealthDescriptions[?TargetHealth.State=='healthy'].Target.Id" --output text; }
+          wait_healthy() {  # espera hasta que haya DESIRED targets sanos (max 25 min)
+            for i in $(seq 1 50); do
+              N=$(healthy | wc -w)
+              echo "[$i] targets sanos: $N / $DESIRED"
+              [ "$N" -ge "$DESIRED" ] && return 0
+              sleep 30
+            done
+            echo "Timeout esperando targets sanos"; return 1
+          }
+          OLD=$(healthy)
+          echo "Instancias sanas con la version anterior: ${OLD:-ninguna}"
+          for ID in $OLD; do
+            echo "== Terminando $ID (el ASG la reemplaza)"
+            aws ec2 terminate-instances --instance-ids "$ID" > /dev/null
+            sleep 60
+            wait_healthy
+          done
+          wait_healthy
+
+      - name: Smoke test por el ALB
+        run: |
+          DNS=$(aws elbv2 describe-load-balancers --names "$PROJECT-alb" \
+                  --query 'LoadBalancers[0].DNSName' --output text)
+          URL="http://$DNS"
+          for i in $(seq 1 20); do
+            if curl -fsS --max-time 10 "$URL/api/products" > /tmp/products.json; then break; fi
+            echo "[$i] esperando al ALB..."; sleep 15
+          done
+          curl -fsS --max-time 10 "$URL/" > /dev/null
+          echo "Frontend OK: $URL"; head -c 600 /tmp/products.json; echo
+          {
+            echo "## FreshBox desplegado"
+            echo "- Frontend: $URL"
+            echo "- API: $URL/api/products"
+          } >> "$GITHUB_STEP_SUMMARY"

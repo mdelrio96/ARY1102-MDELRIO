@@ -68,14 +68,15 @@ EV1/app/
 
 ## Despliegue en AWS (GitHub Actions, sin push)
 
-La app se publica con los workflows de la raiz del repo (`.github/workflows/ep1-*.yaml`):
+La app se publica con el workflow *EP1 · FreshBox (EC2 + Docker)* (`.github/workflows/ep1-freshbox.yaml`), eligiendo la accion al lanzarlo:
 
-| Workflow | Disparador | Hace |
-|---|---|---|
-| *EP1 · Desplegar FreshBox (infra + app)* | Actions → Run workflow | 1) `terraform apply` de la infra (plantilla `ep1-provision-freshbox.yaml`), 2) build arm64 de las 5 imagenes, push a ECR, reemplazo gradual de las EC2 App y smoke test por el ALB (plantilla `ep1-deploy-app-ecr.yaml`) |
-| *EP1 · Validar* | push a ramas / PR | `terraform validate` + `docker build` de las 5 imagenes sin publicar |
+| Accion | Hace |
+|---|---|
+| `desplegar` | 1) `terraform apply` de la infra, 2) build arm64 de las 5 imagenes, push a ECR, reemplazo gradual de las EC2 App y smoke test por el ALB |
+| `actualizar-app` | solo el paso 2 |
+| `validar` | `terraform validate` + `docker build` de las 5 imagenes sin publicar (tambien corre solo en cada push o PR que toque EV1) |
 
-Requisitos: secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` del Learner Lab (se renuevan en cada sesion; ver `EV1/README.md`). Para bajar la infraestructura: workflow *EP1 · Infraestructura* → `destroy`.
+Requisitos: secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` del Learner Lab (se renuevan en cada sesion; ver `EV1/README.md`). Para bajar la infraestructura: el mismo workflow con la accion `eliminar`.
 
 Cambios respecto a la app original del docente: `js/app.js` llama a `origin + "/api/products"` en AWS (todo entra por el ALB:80 y Nginx enruta), `deploy-containers.sh` usa `--network-alias` y publica los backends solo en `127.0.0.1`, y `docker-compose.aws.yml` permite el despliegue manual con las imagenes de ECR.
 

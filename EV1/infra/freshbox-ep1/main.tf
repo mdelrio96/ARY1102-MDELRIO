@@ -273,7 +273,7 @@ resource "aws_security_group" "data" {
 
 # ---------- ECR: 5 repositorios (frontend + 4 microservicios) ----------
 # Las imagenes (arm64) las construye y publica la pipeline de GitHub Actions
-# (.github/workflows/_docker-ecr.yml) o scripts/ecr-push.sh desde el PC.
+# (.github/workflows/ep1-freshbox.yaml) o app/scripts/ecr-push.sh desde el PC.
 
 resource "aws_ecr_repository" "app" {
   for_each = toset(local.services)
