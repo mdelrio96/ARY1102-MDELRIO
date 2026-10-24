@@ -9,10 +9,10 @@ Cada evaluación se organiza en su propia carpeta, siguiendo la nomenclatura `/E
 | Carpeta | Evaluación | Contenido |
 |---|---|---|
 | [EV1](https://github.com/mdelrio96/ARY1102-MDELRIO/tree/main/EV1) | EP1 · FreshBox SpA — arquitectura TO-BE de tres capas en AWS | Terraform (`infra/`), aplicación (`app/`), diagrama TO-BE, guía de despliegue y [changelog](https://github.com/mdelrio96/ARY1102-MDELRIO/blob/main/EV1/CHANGELOG.md) |
-| EV2 | *(pendiente)* | |
+| [EV2](https://github.com/mdelrio96/ARY1102-MDELRIO/tree/main/EV2) | EP2 · FreshBox SpA — modernización a Amazon EKS + RDS MySQL Multi-AZ | Terraform (`infra/`), aplicación (`app/`), manifiestos de Kubernetes (`k8s/`), scripts de despliegue y prueba, diagrama TO-BE y changelog |
 | EV3 | *(pendiente)* | |
 
-Dentro de cada carpeta se incluyen los archivos correspondientes al desarrollo, documentación y/o entregables de esa evaluación. Los workflows de GitHub Actions viven en `.github/workflows/` con el prefijo de la evaluación (`ep1-*`).
+Dentro de cada carpeta se incluyen los archivos correspondientes al desarrollo, documentación y/o entregables de esa evaluación. Los workflows de GitHub Actions viven en `.github/workflows/` con el prefijo de la evaluación (`ep1-*`, `ep2-*`).
 
 ## 🛠️ Cómo navegar el repositorio
 
