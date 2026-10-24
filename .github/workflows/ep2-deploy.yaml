@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────
+# EP2 · Desplegar FreshBox en EKS completo (Actions → "EP2 · Desplegar" → Run workflow).
+# No requiere push: encadena las plantillas reutilizables de este repo:
+#   1. infra → backend de estado y terraform apply (red, SG, ECR, EKS, RDS Multi-AZ)
+#   2. app   → build arm64 + push a ECR, manifiestos en EKS y prueba CRUD por el ALB
+# Para bajar todo: workflow "EP2 · Infraestructura" con action = destroy.
+# ─────────────────────────────────────────────────────────────
+
+name: EP2 · Desplegar FreshBox en EKS (infra + app)
+
+on:
+  workflow_dispatch:
+    inputs:
+      provision_infra:
+        description: Levantar/actualizar la infraestructura con Terraform antes de publicar la app
+        required: true
+        type: boolean
+        default: true
+      image_tag:
+        description: Tag de las imágenes (vacío = commit actual)
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  infra:
+    name: Infraestructura (plantilla reutilizable)
+    if: ${{ inputs.provision_infra }}
+    uses: ./.github/workflows/ep2-provision-freshbox.yaml
+    with:
+      action: apply
+      crear_eks: true # la app necesita el clúster
+    secrets: inherit
+
+  app:
+    name: Build + Push ECR + EKS (plantilla reutilizable)
+    needs: infra
+    if: ${{ always() && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
+    uses: ./.github/workflows/ep2-deploy-app.yaml
+    with:
+      image_tag: ${{ inputs.image_tag }}
+    secrets: inherit

@@ -1,0 +1,186 @@
+# ─────────────────────────────────────────────────────────────
+# EP2 · Build + Push a ECR + despliegue en EKS (reutilizable + Run workflow)
+#
+# 1. tag     → tag de las imágenes: el indicado o el commit (7 caracteres)
+# 2. build   → 5 imágenes linux/arm64 (nodos t4g.small) a ECR, con ese tag y latest
+# 3. deploy  → EV2/script/aplicar-k8s.sh (ConfigMap, Secret, migración de datos,
+#              Deployments, Services, Ingress/ALB, HPA) y EV2/script/probar-crud.sh
+#              (GET, POST, PUT, DELETE por el ALB)
+# Requiere la infraestructura arriba (EP2 · Infraestructura → apply).
+# ─────────────────────────────────────────────────────────────
+
+name: EP2 · Build + Push ECR + despliegue en EKS
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Tag de las imágenes (vacío = commit actual)
+        required: false
+        type: string
+        default: ""
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+    outputs:
+      alb_url:
+        value: ${{ jobs.deploy.outputs.alb_url }}
+
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tag de las imágenes (vacío = commit actual)
+        required: false
+        type: string
+        default: ""
+      aws_region:
+        description: Región AWS
+        required: true
+        type: string
+        default: us-east-1
+
+permissions:
+  contents: read
+
+env:
+  APP_DIR: EV2/app
+  TF_DIR: EV2/infra/freshbox-ep2
+
+jobs:
+  tag:
+    name: tag de las imágenes
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - id: t
+        env:
+          INPUT_TAG: ${{ inputs.image_tag }}
+        run: echo "tag=${INPUT_TAG:-${GITHUB_SHA::7}}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: build+push ${{ matrix.service }}
+    needs: tag
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            context: microservicioFrontend
+          - service: get-products
+            context: microserviciosBackend/get-products
+          - service: create-product
+            context: microserviciosBackend/create-product
+          - service: update-product
+            context: microserviciosBackend/update-product
+          - service: delete-product
+            context: microserviciosBackend/delete-product
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Login ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # QEMU permite construir arm64 en el runner x86_64.
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push ${{ matrix.service }} (linux/arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/${{ matrix.context }}
+          platforms: linux/arm64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/freshbox-${{ matrix.service }}:${{ needs.tag.outputs.tag }}
+            ${{ steps.ecr.outputs.registry }}/freshbox-${{ matrix.service }}:latest
+          cache-from: type=gha,scope=ep2-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=ep2-${{ matrix.service }}
+
+      - name: Resumen
+        run: echo "- \`freshbox-${{ matrix.service }}\` → \`${{ needs.tag.outputs.tag }}\`, \`latest\` (linux/arm64)" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: despliegue en EKS + prueba CRUD
+    needs: [tag, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      AWS_REGION: ${{ inputs.aws_region }}
+      IMAGE_TAG: ${{ needs.tag.outputs.tag }}
+    outputs:
+      alb_url: ${{ steps.k8s.outputs.alb_url }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v4
+
+      # Solo para leer las salidas (endpoint de RDS, clave, SG-ALB); no cambia nada.
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Aplicar manifiestos en EKS
+        id: k8s
+        run: bash EV2/script/aplicar-k8s.sh
+
+      - name: Prueba CRUD por el ALB
+        shell: bash # -o pipefail: si falla la prueba, falla el paso aunque pase por tee
+        run: bash EV2/script/probar-crud.sh "${{ steps.k8s.outputs.alb_url }}" | tee crud.txt
+
+      - name: Resumen
+        run: |
+          {
+            echo "## FreshBox en EKS"
+            echo "- Frontend: ${{ steps.k8s.outputs.alb_url }}"
+            echo "- API: ${{ steps.k8s.outputs.alb_url }}/api/products"
+            echo "- Imágenes: \`freshbox-*:$IMAGE_TAG\`"
+            echo ""
+            echo '```'
+            kubectl get nodes -o wide
+            kubectl get pods,hpa,ingress -n freshbox
+            echo '```'
+            echo "### Prueba CRUD"
+            echo '```'; cat crud.txt; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,184 @@
+# ─────────────────────────────────────────────────────────────
+# EP2 · Infraestructura FreshBox (Terraform) en AWS Academy Learner Lab:
+# red de 3 capas, Security Groups, ECR, EKS (Node Group t4g.small) y RDS Multi-AZ.
+#
+# - workflow_dispatch: Actions → "EP2 · Infraestructura" → Run workflow
+#   (apply = levantar, destroy = bajar todo, plan = solo revisar). Sin push.
+# - workflow_call: la invoca ep2-deploy.yaml para levantar infra + app de una vez.
+#
+# Mismos comandos que en local:
+#   ./EV2/script/bootstrap-tfstate.sh
+#   terraform -chdir=EV2/infra/freshbox-ep2 init / plan / apply | destroy
+# crear_eks (por defecto sí) decide si el apply crea también el clúster EKS con
+# su Node Group y add-ons, o solo la base (red, SG, ECR y RDS Multi-AZ). Un apply
+# posterior con la opción marcada agrega el clúster; desmarcada, lo quita y deja
+# la base y los datos de RDS.
+# Antes de quitar el clúster (destroy, o apply sin crear_eks) se retira el ALB
+# que creó el Ingress (EV2/script/bajar-k8s.sh): no es un recurso de Terraform y
+# sin su controlador quedaría huérfano, impidiendo borrar la VPC.
+# ─────────────────────────────────────────────────────────────
+
+name: EP2 · Infraestructura (apply / destroy / plan)
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: apply · destroy · plan
+        required: false
+        type: string
+        default: apply
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      crear_eks:
+        description: Crear el clúster EKS junto con la base
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: true
+    outputs:
+      cluster_name:
+        value: ${{ jobs.terraform.outputs.cluster_name }}
+
+  workflow_dispatch:
+    inputs:
+      action:
+        description: apply (levantar) · destroy (bajar todo) · plan (solo revisar)
+        required: true
+        type: choice
+        options: [apply, destroy, plan]
+        default: apply
+      aws_region:
+        description: Región AWS
+        required: true
+        type: string
+        default: us-east-1
+      crear_eks:
+        description: Crear el clúster EKS (Node Group t4g.small + add-ons). Desmarcado = solo red, SG, ECR y RDS
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  TF_DIR: EV2/infra/freshbox-ep2
+
+jobs:
+  terraform:
+    name: terraform ${{ inputs.action }}${{ inputs.action != 'destroy' && (inputs.crear_eks && ' (con EKS)' || ' (sin EKS)') || '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75 # EKS ~12 min, node group ~5, RDS Multi-AZ ~15-20 (en paralelo)
+    # Nunca dos operaciones sobre el mismo estado a la vez.
+    concurrency:
+      group: freshbox-ep2-terraform
+      cancel-in-progress: false
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_aws_region: ${{ inputs.aws_region }}
+      TF_VAR_create_eks: ${{ inputs.crear_eks }}
+      AWS_REGION: ${{ inputs.aws_region }}
+    outputs:
+      cluster_name: ${{ steps.out.outputs.cluster_name }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      # Primera etapa: bucket de estado + tabla de bloqueo (idempotente), antes de
+      # que Terraform toque la cuenta. Son los mismos de EV1.
+      - name: Backend de estado (S3 + DynamoDB si no existen)
+        run: bash EV2/script/bootstrap-tfstate.sh
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform fmt + validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform validate
+
+      # Solo si el clúster va a desaparecer (destroy, o apply sin crear_eks).
+      # bajar-k8s.sh no hace nada si el clúster no existe.
+      - name: Instalar kubectl
+        if: inputs.action == 'destroy' || (inputs.action == 'apply' && !inputs.crear_eks)
+        uses: azure/setup-kubectl@v4
+
+      - name: Retirar el ALB del Ingress y los pods
+        if: inputs.action == 'destroy' || (inputs.action == 'apply' && !inputs.crear_eks)
+        run: bash EV2/script/bajar-k8s.sh
+
+      - name: Terraform plan
+        if: inputs.action == 'plan'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform plan -input=false -no-color | tee plan.txt
+          { echo "### terraform plan"; echo '```'; tail -n 250 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform apply
+        if: inputs.action == 'apply'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -input=false -auto-approve
+
+      - name: Terraform destroy
+        if: inputs.action == 'destroy'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform destroy -input=false -auto-approve
+
+      # Container Insights crea sus grupos de logs desde el cluster (fuera de Terraform).
+      - name: Borrar logs de Container Insights
+        if: inputs.action == 'destroy'
+        run: |
+          for LG in $(aws logs describe-log-groups --log-group-name-prefix /aws/containerinsights/freshbox-cluster \
+                        --query 'logGroups[].logGroupName' --output text); do
+            echo "Borrando $LG"
+            aws logs delete-log-group --log-group-name "$LG"
+          done
+
+      - name: Capturar salidas
+        id: out
+        if: inputs.action == 'apply'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          RDS="$(terraform output -raw rds_identifier)"
+          {
+            echo "### EP2 — Infraestructura lista"
+            echo ""
+            if [ "$(terraform output -raw eks_enabled)" = "true" ]; then
+              CLUSTER="$(terraform output -raw cluster_name)"
+              echo "cluster_name=$CLUSTER" >> "$GITHUB_OUTPUT"
+              echo "Clúster EKS \`$CLUSTER\` y RDS \`$RDS\` (Multi-AZ)."
+              echo "Falta publicar la app: workflow *EP2 · Build + Push ECR + despliegue en EKS* (o *EP2 · Desplegar*, que hace las dos cosas)."
+            else
+              echo "Base lista (red, SG, ECR y RDS \`$RDS\` Multi-AZ), **sin clúster EKS**."
+              echo "Para agregarlo: este mismo workflow con apply y *crear_eks* marcado."
+            fi
+            echo ""
+            echo '```'; terraform output; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
