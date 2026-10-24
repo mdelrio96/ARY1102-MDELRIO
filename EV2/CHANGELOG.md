@@ -13,6 +13,10 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-10-24` **ev2:** Infraestructura con Terraform (red, SG por capa, ECR, EKS opcional y RDS Multi-AZ) ([8b5e4bc](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8b5e4bc680354986e1e2b7d295f8777d6451bb52))
 - `2026-10-24` **ev2:** Scripts de despliegue en EKS, prueba CRUD, carga para el HPA y retiro del ALB ([aa2ae43](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/aa2ae4392f14e0aae1858aabaa5db351480d6d2d))
 
+### Corregido
+
+- `2026-10-24` **ev2:** ALB del Ingress sin etiquetas propias (Auto Mode rechazaba CreateRule) y recreacion del Ingress sin DNS ([e174bcf](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e174bcf6d967f812fb558f3a2982ed7c526b9346))
+
 ### CI/CD
 
 - `2026-10-24` **ev2:** Workflows de infraestructura, despliegue en EKS y validacion ([a2d93a0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a2d93a0e33537ec63b0cd0336dd8ef33211f4059))
