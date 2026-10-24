@@ -16,6 +16,12 @@
 # ─────────────────────────────────────────────────────────────
 
 name: EP2 · FreshBox (EKS + RDS)
+# Título de cada run: la acción elegida (y si incluye EKS) o, en push/PR, el commit o el PR validado.
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+      && format('EP2 · {0}{1}', inputs.accion,
+                (inputs.accion == 'infraestructura' || inputs.accion == 'plan') && (inputs.crear_eks && ' (con EKS)' || ' (sin EKS)') || '')
+      || format('EP2 · validar · {0}', github.event.head_commit.message || github.event.pull_request.title) }}
 
 on:
   push:
@@ -68,7 +74,7 @@ jobs:
           terraform validate
 
   validar-docker:
-    name: validar · docker build ${{ matrix.context }}
+    name: validar · docker build
     if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
     runs-on: ubuntu-latest
     strategy:
@@ -126,7 +132,7 @@ jobs:
   # ═══════════════ Infraestructura: desplegar, infraestructura, plan, eliminar ═══════════════
 
   infra:
-    name: terraform ${{ inputs.accion == 'plan' && 'plan' || (inputs.accion == 'eliminar' && 'destroy' || 'apply') }}${{ inputs.accion != 'eliminar' && ((inputs.accion == 'desplegar' || inputs.crear_eks) && ' (con EKS)' || ' (sin EKS)') || '' }}
+    name: infraestructura · terraform
     if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["desplegar","infraestructura","plan","eliminar"]'), inputs.accion)
     runs-on: ubuntu-latest
     timeout-minutes: 75 # EKS ~12 min, node group ~5, RDS Multi-AZ ~15-20 (en paralelo)
@@ -247,7 +253,7 @@ jobs:
   # En "desplegar" espera a la infraestructura; en "actualizar-app" el job infra se
   # omite y la construcción parte de inmediato.
   build:
-    name: app · build+push ${{ matrix.service }}
+    name: app · build+push
     needs: [infra, tag]
     if: ${{ !cancelled() && needs.tag.result == 'success' && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
     runs-on: ubuntu-latest

@@ -17,6 +17,11 @@
 # ─────────────────────────────────────────────────────────────
 
 name: EP1 · FreshBox (EC2 + Docker)
+# Título de cada run: la acción elegida o, en push/PR, el commit o el PR validado.
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+      && format('EP1 · {0}', inputs.accion)
+      || format('EP1 · validar · {0}', github.event.head_commit.message || github.event.pull_request.title) }}
 
 on:
   push:
@@ -83,7 +88,7 @@ jobs:
           terraform validate
 
   validar-docker:
-    name: validar · docker build ${{ matrix.context }}
+    name: validar · docker build
     if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
     runs-on: ubuntu-latest
     strategy:
@@ -106,7 +111,7 @@ jobs:
   # ═══════════════ Infraestructura: desplegar, infraestructura, plan, eliminar ═══════════════
 
   infra:
-    name: terraform ${{ inputs.accion == 'plan' && 'plan' || (inputs.accion == 'eliminar' && 'destroy' || 'apply') }}
+    name: infraestructura · terraform
     if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["desplegar","infraestructura","plan","eliminar"]'), inputs.accion)
     runs-on: ubuntu-latest
     # Nunca dos operaciones sobre el mismo estado a la vez.
@@ -215,7 +220,7 @@ jobs:
   # StartInstanceRefresh). Termina con un smoke test por el ALB.
 
   build:
-    name: app · build+push ${{ matrix.service }}
+    name: app · build+push
     needs: infra
     if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && (inputs.accion == 'desplegar' || inputs.accion == 'actualizar-app') && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
     runs-on: ubuntu-latest
