@@ -1,0 +1,12 @@
+# Datos de conexión no sensibles. <RDS_ENDPOINT> = endpoint de RDS MySQL Multi-AZ,
+# sin puerto (lo reemplaza script/aplicar-k8s.sh con la salida de Terraform).
+# Ante un failover el endpoint no cambia: RDS lo apunta al standby promovido.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freshbox-config
+  namespace: freshbox
+data:
+  DB_HOST: "<RDS_ENDPOINT>"
+  DB_NAME: "freshbox"
+  DB_PORT: "3306"

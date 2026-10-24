@@ -1,0 +1,61 @@
+# Migración de datos de EP1 a RDS: carga app/init.sql (el mismo esquema y los
+# productos de la base MySQL en EC2 de EV1) desde dentro del clúster, porque RDS
+# está en una subred privada sin acceso público.
+# El ConfigMap freshbox-init-sql lo crea script/aplicar-k8s.sh desde app/init.sql.
+# Es idempotente: si la tabla productos ya tiene filas, no vuelve a insertar.
+# La clave va en MYSQL_PWD para que no aparezca en los argumentos del proceso.
+# El conteo usa comillas invertidas y no $(...): Kubernetes interpreta $(NOMBRE)
+# en command como referencia a una variable de entorno.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrar-datos-ep1
+  namespace: freshbox
+  labels:
+    app: migrar-datos-ep1
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: migrar-datos-ep1
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mysql-client
+          image: mysql:8.0
+          command:
+            - sh
+            - -c
+            - |
+              FILAS=`mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM productos" "$DB_NAME" 2>/dev/null || echo 0`
+              if [ "${FILAS:-0}" -gt 0 ]; then
+                echo "La tabla productos ya tiene $FILAS filas: no se carga init.sql"
+              else
+                mysql -h "$DB_HOST" -u "$DB_USER" < /sql/init.sql
+                echo "init.sql cargado en $DB_HOST"
+              fi
+              mysql -h "$DB_HOST" -u "$DB_USER" -e "SELECT id, nombre, precio, stock FROM productos" "$DB_NAME"
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef: { name: freshbox-config, key: DB_HOST }
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef: { name: freshbox-config, key: DB_NAME }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: freshbox-secret, key: DB_USER }
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef: { name: freshbox-secret, key: DB_PASS }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 250m, memory: 256Mi }
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+      volumes:
+        - name: sql
+          configMap:
+            name: freshbox-init-sql

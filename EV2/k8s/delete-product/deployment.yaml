@@ -1,0 +1,85 @@
+# Deployment de delete-product (DELETE /api/products/:id): elimina productos en RDS.
+# 2 réplicas repartidas entre AZ1a y AZ1b; el HPA (hpa.yaml) las lleva hasta 5.
+# <ECR_REGISTRY> e <IMAGE_TAG> los reemplaza script/aplicar-k8s.sh. Cada versión
+# tiene su propio tag, por eso basta IfNotPresent: un nodo que ya tiene la imagen
+# arranca el pod aunque no pueda llegar a ECR.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delete-product
+  namespace: freshbox
+  labels:
+    app: delete-product
+    tier: backend
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: delete-product
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: delete-product
+        tier: backend
+    spec:
+      # Reparte las réplicas entre zonas: si cae una AZ queda al menos un pod en la otra.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: delete-product
+      # Imagen node:22-alpine con USER node (uid 1000): Kubernetes comprueba que no sea root.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: delete-product
+          image: <ECR_REGISTRY>/freshbox-delete-product:<IMAGE_TAG>
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3004
+          env:
+            - name: PORT
+              value: "3004"
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef: { name: freshbox-config, key: DB_HOST }
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef: { name: freshbox-config, key: DB_NAME }
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef: { name: freshbox-config, key: DB_PORT }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: freshbox-secret, key: DB_USER }
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef: { name: freshbox-secret, key: DB_PASS }
+          # requests: lo que el scheduler reserva y la base del % de CPU del HPA.
+          # limits: tope por pod para que uno solo no agote un nodo t4g.small.
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 250m, memory: 256Mi }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

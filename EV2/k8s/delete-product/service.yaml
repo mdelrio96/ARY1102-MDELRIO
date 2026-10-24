@@ -1,0 +1,17 @@
+# Service ClusterIP de delete-product (DELETE). Solo accesible dentro del clúster:
+# Nginx lo llama como delete-product.freshbox.svc.cluster.local:3004.
+apiVersion: v1
+kind: Service
+metadata:
+  name: delete-product
+  namespace: freshbox
+  labels:
+    app: delete-product
+spec:
+  type: ClusterIP
+  selector:
+    app: delete-product
+  ports:
+    - name: http
+      port: 3004
+      targetPort: http

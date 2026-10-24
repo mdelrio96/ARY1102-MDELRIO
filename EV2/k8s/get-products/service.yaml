@@ -1,0 +1,17 @@
+# Service ClusterIP de get-products (GET). Solo accesible dentro del clúster:
+# Nginx lo llama como get-products.freshbox.svc.cluster.local:3001.
+apiVersion: v1
+kind: Service
+metadata:
+  name: get-products
+  namespace: freshbox
+  labels:
+    app: get-products
+spec:
+  type: ClusterIP
+  selector:
+    app: get-products
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http

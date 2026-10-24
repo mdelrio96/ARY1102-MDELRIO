@@ -1,0 +1,32 @@
+# Ingress -> ALB internet-facing en las dos subredes públicas.
+# Todo el tráfico entra al frontend; Nginx reparte /api/products por método HTTP
+# a los Services ClusterIP de los backends (un ALB no distingue GET/POST/PUT/DELETE
+# hacia un mismo path sin reglas por método).
+# target-type ip: el ALB registra directamente las IP de los pods frontend de
+# ambas AZ. <SG_ALB_ID> = freshbox-sg-alb, creado por Terraform (80/443 desde
+# Internet); freshbox-sg-eks solo acepta 80/443 desde ese grupo.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshbox-ingress
+  namespace: freshbox
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: freshbox-eks-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/security-groups: <SG_ALB_ID>
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/tags: Project=FreshBox,Env=EP2,Layer=web
+spec:
+  ingressClassName: freshbox-alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

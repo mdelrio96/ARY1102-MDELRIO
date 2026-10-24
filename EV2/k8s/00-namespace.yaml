@@ -1,0 +1,8 @@
+# Namespace de la aplicación. Todos los objetos de FreshBox viven aquí.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: freshbox
+  labels:
+    app.kubernetes.io/part-of: freshbox
+    environment: ep2

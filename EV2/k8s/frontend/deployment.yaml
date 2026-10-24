@@ -1,0 +1,61 @@
+# Deployment de frontend: Nginx sirve el HTML y reparte /api/products por método HTTP.
+# 2 réplicas repartidas entre AZ1a y AZ1b; el HPA (hpa.yaml) las lleva hasta 5.
+# <ECR_REGISTRY> e <IMAGE_TAG> los reemplaza script/aplicar-k8s.sh. Cada versión
+# tiene su propio tag, por eso basta IfNotPresent: un nodo que ya tiene la imagen
+# arranca el pod aunque no pueda llegar a ECR.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: freshbox
+  labels:
+    app: frontend
+    tier: frontend
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: frontend
+    spec:
+      # Reparte las réplicas entre zonas: si cae una AZ queda al menos un pod en la otra.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: frontend
+      containers:
+        - name: frontend
+          image: <ECR_REGISTRY>/freshbox-frontend:<IMAGE_TAG>
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          # requests: lo que el scheduler reserva y la base del % de CPU del HPA.
+          # limits: tope por pod para que uno solo no agote un nodo t4g.small.
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 250m, memory: 256Mi }
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          # Nginx necesita root para escuchar en :80; se impide escalar privilegios.
+          securityContext:
+            allowPrivilegeEscalation: false

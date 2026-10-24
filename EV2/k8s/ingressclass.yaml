@@ -1,0 +1,25 @@
+# Ingress Controller: el ALB lo administra EKS Auto Mode (controlador
+# eks.amazonaws.com/alb), así que no se instala el AWS Load Balancer Controller,
+# que en el Learner Lab necesitaría crear un rol IAM propio (IRSA).
+# Requisito: clúster con compute_config, elastic_load_balancing y block_storage
+# habilitados (EV2/infra/freshbox-ep2/eks.tf). Es el mismo mecanismo que validó
+# el docente en la actividad 2.3.
+# Auto Mode crea el ALB en las subredes etiquetadas kubernetes.io/role/elb=1.
+apiVersion: eks.amazonaws.com/v1
+kind: IngressClassParams
+metadata:
+  name: freshbox-alb
+spec:
+  scheme: internet-facing
+  targetType: ip
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: freshbox-alb
+spec:
+  controller: eks.amazonaws.com/alb
+  parameters:
+    apiGroup: eks.amazonaws.com
+    kind: IngressClassParams
+    name: freshbox-alb

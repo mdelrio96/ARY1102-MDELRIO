@@ -1,0 +1,26 @@
+# HPA de get-products: de 2 a 5 réplicas con CPU objetivo de 70 %.
+# El 70 % se mide contra requests.cpu (100m): escala cuando el promedio supera ~70m.
+# Las métricas las entrega el add-on metrics-server. La bajada espera 2 minutos
+# estables (por defecto son 5) para que la demostración vuelva antes al mínimo.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: get-products-hpa
+  namespace: freshbox
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: get-products
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
