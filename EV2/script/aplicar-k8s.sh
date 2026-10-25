@@ -127,6 +127,9 @@ for i in $(seq 1 40); do
 done
 
 kubectl get nodes -o wide
+# Capacidad: con prefix delegation PODS debe ser 110 (11 = el CNI no uso prefijos).
+kubectl get nodes -o custom-columns='NODO:.metadata.name,PODS:.status.allocatable.pods,CPU:.status.allocatable.cpu,MEMORIA:.status.allocatable.memory'
+kubectl describe nodes | grep -A 8 "Allocated resources" || true
 kubectl get pods,services,ingress,hpa,pdb -n "$NS" -o wide
 if [ -z "$ALB" ]; then
   kubectl describe ingress freshbox-ingress -n "$NS" | tail -20
