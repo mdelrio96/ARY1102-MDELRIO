@@ -50,7 +50,12 @@ EV2/
 
 - **Roles IAM.** El lab no deja crear roles. El clúster usa `LabEksClusterRole` y los nodos `LabEksNodeRole`, que Terraform busca por nombre (llevan prefijo y sufijo aleatorios).
 - **Ingress Controller.** El AWS Load Balancer Controller necesita su propio rol (IRSA). Se usa el controlador de ALB de **EKS Auto Mode**, el mismo que validó el docente en la actividad 2.3. Auto Mode queda habilitado solo para el balanceo (`node_pools = []`); los nodos son los del Managed Node Group.
-- **Tres nodos deseados (mínimo 2, máximo 4).** Un `t4g.small` admite 11 pods (3 ENI × 3 IP + 2). Los 10 pods de la app, CoreDNS, Metrics Server y los agentes de Container Insights no caben en dos nodos con espacio para que el HPA agregue réplicas. Con tres nodos quedan unos 6 lugares libres.
+- **Dos nodos deseados (mínimo 2, máximo 4).** El Node Group parte con el mínimo y el HPA agrega réplicas dentro de esos dos nodos. Sin ajustes un `t4g.small` admite 11 pods (3 ENI × 3 IP + 2), y en dos nodos no caben los 10 pods de la app junto a CoreDNS, Metrics Server y los agentes de Container Insights. Por eso:
+  - el VPC CNI usa **prefix delegation** (cada ranura de IP recibe un prefijo `/28`). Al crear el node group, EKS lo detecta y sube `maxPods` de 11 a 110, el tope para instancias de menos de 30 vCPU. Desde ahí el límite es la CPU y la memoria de cada nodo;
+  - el launch template reserva memoria para el kubelet según los pods que caben de verdad (`node_pods_reserva = 24`, fórmula de AWS 255Mi + 11Mi por pod), porque por defecto la AMI la calcula para 11;
+  - los pods piden **64Mi** de memoria (el límite sigue en 256Mi), así que la memoria de los nodos alcanza para las réplicas extra.
+
+  Según el cálculo, en los dos nodos caben los 10 pods mínimos y unas 15 réplicas más, limitadas por la CPU reservada (100m por pod). Se confirma con `kubectl describe nodes` (bloque *Allocated resources*). Prefix delegation necesita bloques `/28` libres en las subredes App: en un despliegue nuevo están casi vacías, pero activarlo sobre un clúster que ya tiene pods puede fallar con `InsufficientCidrBlocks`.
 - **Escalado de nodos.** El mínimo y el máximo del Node Group son límites. Para que agregue nodos por sí solo hace falta un Cluster Autoscaler, que necesita permisos IAM que el lab no da. En la demostración se escala a mano (abajo) y el HPA es el escalado automático.
 - **API de EKS pública con autenticación IAM** (`0.0.0.0/0`), para que la pipeline de GitHub pueda usar `kubectl`. Se puede limitar con `eks_public_access_cidrs`.
 - **HTTP sin TLS.** El SG-ALB permite 443 como pide la pauta, pero el lab no tiene dominio ni certificado ACM para un listener HTTPS.
@@ -105,6 +110,7 @@ Prueba local de la app, sin AWS: `cd EV2/app && docker compose up -d --build` �
 | Pauta | Comando o lugar en la consola |
 |---|---|
 | Clúster y nodos en 2 AZ | `kubectl get nodes -L topology.kubernetes.io/zone,node.kubernetes.io/instance-type` |
+| Capacidad por nodo (PODS en 110; con 11 no se activó prefix delegation) | `kubectl get nodes -o custom-columns=NODO:.metadata.name,PODS:.status.allocatable.pods,CPU:.status.allocatable.cpu,MEMORIA:.status.allocatable.memory` |
 | 5 Deployments, 10 pods | `kubectl get deploy,pods -n freshbox -o wide` |
 | Services ClusterIP e Ingress con DNS del ALB | `kubectl get svc,ingress -n freshbox` |
 | Imágenes en ECR | `aws ecr describe-images --repository-name freshbox-get-products --query 'imageDetails[].imageTags'` |

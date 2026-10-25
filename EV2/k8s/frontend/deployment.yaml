@@ -44,9 +44,10 @@ spec:
             - name: http
               containerPort: 80
           # requests: lo que el scheduler reserva y la base del % de CPU del HPA.
+          # 64Mi de memoria para que las replicas del HPA quepan en los 2 nodos.
           # limits: tope por pod para que uno solo no agote un nodo t4g.small.
           resources:
-            requests: { cpu: 100m, memory: 128Mi }
+            requests: { cpu: 100m, memory: 64Mi }
             limits: { cpu: 250m, memory: 256Mi }
           readinessProbe:
             httpGet: { path: /, port: http }

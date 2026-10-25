@@ -68,6 +68,11 @@ resource "aws_eks_cluster" "main" {
 
 # ---------- Add-ons de red: antes de los nodos (sin CNI los nodos quedan NotReady) ----------
 
+# Prefix delegation: cada ranura de IP de las ENI recibe un prefijo /28 (16 IP)
+# en vez de una IP suelta. Al crear el node group EKS lo detecta y fija maxPods
+# en 110 (tope para menos de 30 vCPU) en vez de 11; desde ahi el limite real es
+# la CPU y la memoria de cada nodo. Requiere Nitro (t4g lo es) y bloques /28
+# libres: las subredes App /25 tienen 8, casi vacias antes de crear el cluster.
 resource "aws_eks_addon" "vpc_cni" {
   count = local.eks_count
 
@@ -75,6 +80,13 @@ resource "aws_eks_addon" "vpc_cni" {
   addon_name                  = "vpc-cni"
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  configuration_values = jsonencode({
+    env = {
+      ENABLE_PREFIX_DELEGATION = "true"
+      WARM_PREFIX_TARGET       = "1"
+    }
+  })
 }
 
 resource "aws_eks_addon" "kube_proxy" {
@@ -88,7 +100,8 @@ resource "aws_eks_addon" "kube_proxy" {
 
 # ---------- Nodos: Managed Node Group t4g.small (Graviton) en las 2 subredes App ----------
 # El launch template solo agrega lo que el node group no expone: disco gp3
-# cifrado, IMDSv2 y SG-EKS. La AMI la elige EKS segun ami_type (no se fija aqui).
+# cifrado, IMDSv2, SG-EKS y la reserva de recursos del kubelet. La AMI la elige
+# EKS segun ami_type (no se fija aqui).
 
 resource "aws_launch_template" "eks_nodes" {
   count = local.eks_count
@@ -120,6 +133,31 @@ resource "aws_launch_template" "eks_nodes" {
     http_tokens                 = "required"
     http_put_response_hop_limit = 2
   }
+
+  # NodeConfig de AL2023 (nodeadm). EKS agrega el suyo con los datos del cluster
+  # y maxPods (ese valor manda en un node group sin AMI propia, asi que aqui no se
+  # fija). Este solo da la reserva del kubelet: nodeadm la calcula para los 11
+  # pods sin prefijos; con la formula de AWS (255Mi + 11Mi por pod) se reserva
+  # para node_pods_reserva, los pods que caben de verdad por CPU.
+  user_data = base64encode(<<-EOT
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="//"
+
+    --//
+    Content-Type: application/node.eks.aws
+
+    apiVersion: node.eks.aws/v1alpha1
+    kind: NodeConfig
+    spec:
+      kubelet:
+        config:
+          kubeReserved:
+            cpu: 70m
+            memory: ${255 + 11 * var.node_pods_reserva}Mi
+            ephemeral-storage: 1Gi
+    --//--
+  EOT
+  )
 
   tag_specifications {
     resource_type = "instance"

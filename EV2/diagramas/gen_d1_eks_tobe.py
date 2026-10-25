@@ -168,7 +168,7 @@ def build():
     vertex("", box("none", "#D86613", "#D86613", dashed=1, rounded=0, extra="dashPattern=8 4;strokeWidth=2;"), 240, ng_y, 960, ng_h)
     vertex("", icon("auto_scaling2", COMP), CX - 18, ng_y - 18, 36, 36)
     vertex("Managed Node Group freshbox-ng · Auto Scaling de 2 a 4 nodos", text(13, "#D86613", "center", 1, bg=app["fill"]), CX - 300, ng_y + 20, 600, 18)
-    vertex("t4g.small Graviton (arm64) · mín 2 / deseado 3 / máx 4 · EBS gp3 cifrado",
+    vertex("t4g.small Graviton (arm64) · mín 2 / deseado 2 / máx 4 · EBS gp3 cifrado",
            text(10, "#7A3A00", "center", bg=app["fill"]), CX - 250, ng_y + 38, 500, 16)
 
     pods = [("get-products", ":3001"), ("create-product", ":3002"), ("frontend", ":80"),

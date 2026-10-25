@@ -80,17 +80,33 @@ variable "node_min_size" {
   default = 2
 }
 
-# Un t4g.small admite 11 pods (3 ENI x 3 IP + 2). Con los 10 pods de la app,
-# CoreDNS, Metrics Server y los agentes de Container Insights, dos nodos quedan
-# sin espacio para que el HPA agregue replicas; con tres sobra para la demo.
+# El Node Group parte con el minimo: el HPA agrega replicas dentro de estos dos
+# nodos (prefix delegation y los requests de 64Mi lo permiten). Llegar a 3 o 4
+# nodos es un cambio manual (sin Cluster Autoscaler en el lab).
 variable "node_desired_size" {
   type    = number
-  default = 3
+  default = 2
 }
 
 variable "node_max_size" {
   type    = number
   default = 4
+}
+
+# Sin prefix delegation un t4g.small admite 11 pods (3 ENI x 3 IP + 2) y en dos
+# nodos no caben los 10 pods de la app junto a los de sistema. Con prefijos EKS
+# sube maxPods a 110 y el limite pasa a ser la CPU: unos 2 vCPU por nodo dan
+# para ~12 pods de la app (100m cada uno) mas ~7 de sistema. La reserva de
+# memoria del kubelet se calcula para 24 pods, con margen sobre esa cifra.
+variable "node_pods_reserva" {
+  description = "Pods por nodo para los que se reserva memoria del kubelet (255Mi + 11Mi por pod)."
+  type        = number
+  default     = 24
+
+  validation {
+    condition     = var.node_pods_reserva >= 11 && var.node_pods_reserva <= 110
+    error_message = "node_pods_reserva debe estar entre 11 y 110 (maxPods que EKS admite en instancias de menos de 30 vCPU)."
+  }
 }
 
 variable "node_disk_size" {

@@ -12,7 +12,7 @@
 |---|---|
 | 3 capas: pública, privada App, privada Data | rótulos a la izquierda, con la route table de cada capa; seis subredes `/25` en dos AZ dentro de la VPC `10.0.0.0/22` (mismos CIDR que EV1) |
 | ALB Ingress + Ingress Controller | ALB centrado en la capa pública; el Ingress Controller de EKS Auto Mode, en la columna de servicios administrados, lo crea a partir del Ingress `freshbox-ingress` |
-| Amazon EKS y Node Group | clúster `freshbox-cluster` (1.34) en las subredes App; Managed Node Group `freshbox-ng` de 2 a 4 nodos `t4g.small` arm64 (3 deseados) con EBS cifrado |
+| Amazon EKS y Node Group | clúster `freshbox-cluster` (1.34) en las subredes App; Managed Node Group `freshbox-ng` de 2 a 4 nodos `t4g.small` arm64 (2 deseados, prefix delegation en el VPC CNI) con EBS cifrado |
 | 5 pods | frontend + 4 microservicios con su puerto, una réplica de cada uno por zona (10 pods en total) |
 | HPA | un HPA por Deployment, de 2 a 5 réplicas con CPU objetivo de 70 % |
 | RDS MySQL Multi-AZ | primaria `db.t4g.small` en DATA 1a y standby sincrónico en DATA 1b, cifrada con KMS, snapshots automáticos con 7 días de retención |
@@ -33,7 +33,7 @@
 
 El diagrama es el diseño objetivo. Estos puntos se confirman al desplegar y, si cambian, se ajusta el generador:
 
-- Capacidad de los nodos `t4g.small`: el VPC CNI admite 11 pods por nodo. Con dos nodos no caben los 10 pods de la app, los de sistema y los de Container Insights con margen para el HPA, por eso el Node Group parte con 3 (ver `EV2/README.md`).
+- Capacidad de los nodos `t4g.small`: sin ajustes el VPC CNI admite 11 pods por nodo y en dos nodos no caben los 10 pods de la app con los de sistema. Con prefix delegation (EKS sube `maxPods` a 110) y requests de 64Mi, el Node Group parte con 2 nodos y el HPA escala dentro de ellos, limitado por la CPU (ver `EV2/README.md`). Confirmar que cada nodo muestre 110 pods asignables.
 - Que Auto Mode acepte el SG-ALB creado por Terraform (anotación `alb.ingress.kubernetes.io/security-groups`).
 - Que `LabEksNodeRole` tenga los permisos que necesita el add-on de Container Insights.
 - Escalado real del Node Group: el mínimo y el máximo son límites. Para que el grupo agregue nodos por sí solo hace falta un autoscaler (Cluster Autoscaler), que también depende de permisos IAM.
