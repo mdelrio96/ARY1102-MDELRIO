@@ -12,7 +12,7 @@
 |---|---|
 | 3 capas: pública, privada App, privada Data | rótulos a la izquierda, con la route table de cada capa; seis subredes `/25` en dos AZ dentro de la VPC `10.0.0.0/22` (mismos CIDR que EV1) |
 | ALB Ingress + Ingress Controller | ALB centrado en la capa pública; el Ingress Controller de EKS Auto Mode, en la columna de servicios administrados, lo crea a partir del Ingress `freshbox-ingress` |
-| Amazon EKS y Node Group | clúster `freshbox-cluster` (1.34) en las subredes App; Managed Node Group `freshbox-ng` de 2 a 4 nodos `t4g.small` arm64 (2 deseados, prefix delegation en el VPC CNI) con EBS cifrado |
+| Amazon EKS y Node Group | clúster `freshbox-cluster` (1.34) en las subredes App; Managed Node Group `freshbox-ng` de 2 a 4 nodos `t4g.small` arm64 con EBS cifrado |
 | 5 pods | frontend + 4 microservicios con su puerto, una réplica de cada uno por zona (10 pods en total) |
 | HPA | un HPA por Deployment, de 2 a 5 réplicas con CPU objetivo de 70 % |
 | RDS MySQL Multi-AZ | primaria `db.t4g.small` en DATA 1a y standby sincrónico en DATA 1b, cifrada con KMS, snapshots automáticos con 7 días de retención |
