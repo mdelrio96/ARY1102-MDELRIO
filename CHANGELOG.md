@@ -17,6 +17,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-10-24` **ev2:** Scripts de despliegue en EKS, prueba CRUD, carga para el HPA y retiro del ALB ([aa2ae43](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/aa2ae4392f14e0aae1858aabaa5db351480d6d2d))
 - `2026-10-24` **ev2:** Node group con 2 nodos y prefix delegation para que el HPA escale dentro de ellos ([15bb21d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/15bb21de35d5edfad2b0fed65ea25c8cbccaedde))
 - `2026-10-24` **ev2:** Aplicar-k8s muestra pods, CPU y memoria asignables por nodo ([d271b80](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/d271b80c7d2e12b081468064595158a8778843bf))
+- `2026-10-25` **ev2:** Maquina de carga con k6 y Cluster Autoscaler para la demo de escalado ([3e9af83](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3e9af833f48a9c0dcb65494e73904f7192bd4129))
 
 ### Corregido
 
