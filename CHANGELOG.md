@@ -52,6 +52,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-10-24` **ev2:** Guia de despliegue de EV2 y enlace desde el README principal ([0cdf9d8](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/0cdf9d8f00a47063f9f8cee1c144159690f22b3d))
 - `2026-10-24` Un workflow por evaluacion en el README principal ([95f66b3](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/95f66b3b78a855b460d73166ee507b58a7810f69))
 - `2026-10-24` **ev2:** Diagrama D1 con el node group como minimo y maximo, sin deseado ([8aae6fe](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8aae6fe109f3fc5ff93ff8fd372911cb1d16c89a))
+- `2026-10-26` **ev2:** Regenera el PNG del diagrama D1 con el node group de minimo 2 y maximo 4 ([689b909](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/689b909f17e59cf36a2933068cff534dac85c838))
 
 ### Mantenimiento
 
