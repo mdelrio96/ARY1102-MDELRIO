@@ -10,6 +10,8 @@
 #   plan             muestra qué cambiaría Terraform, sin aplicar
 #   eliminar         retira ALB y pods, vacía y borra el bucket del sitio, terraform destroy
 #                    y logs de Container Insights
+#   desbloquear      tras cancelar un apply a medias: libera el candado del estado de
+#                    Terraform y registra los recursos que quedaron creados sin anotar
 #   validar          las mismas revisiones que corren solas en cada push/PR a EV3
 # En push y pull request que toquen EV3 corre solo la validación (sin credenciales).
 #
@@ -35,10 +37,10 @@ on:
   workflow_dispatch:
     inputs:
       accion:
-        description: "desplegar (todo) · actualizar-app · infraestructura · plan · eliminar · validar"
+        description: "desplegar (todo) · actualizar-app · infraestructura · plan · eliminar · desbloquear · validar"
         required: true
         type: choice
-        options: [desplegar, actualizar-app, infraestructura, plan, eliminar, validar]
+        options: [desplegar, actualizar-app, infraestructura, plan, eliminar, desbloquear, validar]
         default: desplegar
       crear_eks:
         description: "Crear el clúster EKS (solo para infraestructura y plan; desplegar siempre lo crea)"
@@ -281,6 +283,73 @@ jobs:
             echo ""
             echo '```'; terraform output; echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ═══════════════ Estado de Terraform: desbloquear ═══════════════
+  # Cancelar un run en pleno apply mata a Terraform sin que suelte el candado del estado
+  # ni anote lo ya creado. Comparte el grupo de concurrencia con "infra": espera a que
+  # termine cualquier operación en curso, así que el candado que encuentra es de un run muerto.
+
+  desbloquear:
+    name: estado · desbloquear y registrar recursos
+    if: github.event_name == 'workflow_dispatch' && inputs.accion == 'desbloquear'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60 # espera a que terminen RDS (~20 min) y EKS (~15 min) si seguían creándose
+    concurrency:
+      group: freshbox-ep3-terraform
+      cancel-in-progress: false
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_aws_region: us-east-1
+      TF_VAR_create_eks: "true"
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar Node (dependencias de Process-Order)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # El precondition de lambda.tf exige node_modules/mysql2 antes de plan y apply.
+      - name: Dependencias de Lambda Process-Order
+        run: |
+          cd EV3/app/lambda/procesar-orden
+          npm install --omit=dev --no-audit --no-fund
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      - name: Backend de estado (S3 + DynamoDB si no existen)
+        run: bash EV3/script/bootstrap-tfstate.sh
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Liberar el candado y registrar los recursos huérfanos
+        run: bash EV3/script/desbloquear-estado.sh
+
+      # Muestra qué falta crear. Un "must be replaced" en el clúster o en RDS significa
+      # que el import no pudo dejarlos como estaban: revisar antes de desplegar.
+      - name: Terraform plan (qué queda por crear)
+        continue-on-error: true
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform plan -input=false -no-color | tee plan.txt
+          { echo "### terraform plan"; echo '```'; tail -n 250 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════ Aplicación: desplegar, actualizar-app ═══════════════
 
