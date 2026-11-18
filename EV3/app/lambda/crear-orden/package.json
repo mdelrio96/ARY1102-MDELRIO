@@ -1,0 +1,11 @@
+{
+  "name": "freshbox-crear-orden",
+  "version": "1.0.0",
+  "description": "Lambda crear orden FreshBox (DynamoDB + SQS)",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/lib-dynamodb": "^3.400.0",
+    "@aws-sdk/client-sqs": "^3.400.0"
+  }
+}
