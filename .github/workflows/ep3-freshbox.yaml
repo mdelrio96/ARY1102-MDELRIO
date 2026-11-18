@@ -1,0 +1,409 @@
+# ─────────────────────────────────────────────────────────────
+# EP3 · FreshBox serverless híbrido (EKS + Lambda + API Gateway + DynamoDB + SQS + RDS)
+# AWS Academy Learner Lab. Único workflow de la evaluación. Actions → "EP3 · FreshBox
+# (serverless híbrido)" → Run workflow → acción:
+#   desplegar        Terraform apply (con EKS) + imágenes arm64 a ECR + manifiestos en EKS
+#                    + sitio en S3 + prueba de punta a punta por API Gateway.
+#   actualizar-app   solo imágenes, manifiestos, sitio S3 y prueba (la infraestructura ya existe)
+#   infraestructura  solo Terraform apply; con crear_eks desmarcado crea solo la base
+#                    (red, SG, ECR, RDS, DynamoDB, SQS, Lambdas, API Gateway y VPC Endpoint)
+#   plan             muestra qué cambiaría Terraform, sin aplicar
+#   eliminar         retira ALB y pods, vacía y borra el bucket del sitio, terraform destroy
+#                    y logs de Container Insights
+#   validar          las mismas revisiones que corren solas en cada push/PR a EV3
+# En push y pull request que toquen EV3 corre solo la validación (sin credenciales).
+#
+# Mismos comandos que en local: EV3/script/*.sh, EV3/app/scripts/ecr-push.sh y
+# terraform -chdir=EV3/infra/freshbox-ep3.
+# Antes de desplegar, la cuenta no puede tener EP1 ni EP2: usan los mismos nombres
+# de recursos (cluster, RDS, ECR). El paso "Verificar" lo detiene si quedaron.
+# ─────────────────────────────────────────────────────────────
+
+name: EP3 · FreshBox (serverless híbrido)
+# Título de cada run: la acción elegida (y si incluye EKS) o, en push/PR, el commit o el PR validado.
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch'
+      && format('EP3 · {0}{1}', inputs.accion,
+                (inputs.accion == 'infraestructura' || inputs.accion == 'plan') && (inputs.crear_eks && ' (con EKS)' || ' (sin EKS)') || '')
+      || format('EP3 · validar · {0}', github.event.head_commit.message || github.event.pull_request.title) }}
+
+on:
+  push:
+    paths: ["EV3/infra/**", "EV3/app/**", "EV3/k8s/**", "EV3/script/**", ".github/workflows/ep3-*.yaml"]
+  pull_request:
+    paths: ["EV3/infra/**", "EV3/app/**", "EV3/k8s/**", "EV3/script/**", ".github/workflows/ep3-*.yaml"]
+  workflow_dispatch:
+    inputs:
+      accion:
+        description: "desplegar (todo) · actualizar-app · infraestructura · plan · eliminar · validar"
+        required: true
+        type: choice
+        options: [desplegar, actualizar-app, infraestructura, plan, eliminar, validar]
+        default: desplegar
+      crear_eks:
+        description: "Crear el clúster EKS (solo para infraestructura y plan; desplegar siempre lo crea)"
+        required: true
+        type: boolean
+        default: true
+      image_tag:
+        description: "Tag de las imágenes (vacío = commit actual)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_DIR: EV3/infra/freshbox-ep3
+  APP_DIR: EV3/app
+
+jobs:
+  # ═══════════════ Validación: push, PR o acción "validar" ═══════════════
+
+  validar-terraform:
+    name: validar · terraform fmt + validate
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+      - working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+  validar-lambda:
+    name: validar · lambdas (node --check)
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependencias y revisar sintaxis de cada Lambda
+        run: |
+          for d in procesar-carrito crear-orden procesar-orden; do
+            (cd "$APP_DIR/lambda/$d" && npm install --omit=dev --no-audit --no-fund && node --check index.js)
+          done
+        env:
+          APP_DIR: ${{ env.APP_DIR }}
+
+  validar-docker:
+    name: validar · docker build
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - get-products
+          - create-product
+          - update-product
+          - delete-product
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/microserviciosBackend/${{ matrix.context }}
+          platforms: linux/arm64
+          push: false
+
+  validar-manifiestos:
+    name: validar · kubeconform + shellcheck
+    if: github.event_name != 'workflow_dispatch' || inputs.accion == 'validar'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar kubeconform
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C "$RUNNER_TEMP/bin" kubeconform
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # Mismos reemplazos que aplicar-k8s.sh, con valores de ejemplo. IngressClassParams
+      # (CRD de EKS Auto Mode) no tiene esquema público: se omite.
+      - name: Validar manifiestos de EV3/k8s
+        run: |
+          OUT="$RUNNER_TEMP/k8s"
+          mkdir -p "$OUT"
+          cd EV3/k8s
+          find . -name '*.yaml' | sed 's|^\./||' | while read -r f; do
+            sed -e 's|<ECR_REGISTRY>|123456789012.dkr.ecr.us-east-1.amazonaws.com|g' \
+                -e 's|<IMAGE_TAG>|validacion|g' \
+                -e 's|<RDS_ENDPOINT>|freshbox-db.abcdefghijkl.us-east-1.rds.amazonaws.com|g' \
+                -e 's|<SG_ALB_ID>|sg-0123456789abcdef0|g' "$f" > "$OUT/${f//\//-}"
+          done
+          kubeconform -strict -summary -ignore-missing-schemas "$OUT"
+          if grep -l '<[A-Z_]*>' "$OUT"/*.yaml; then echo "Quedaron marcadores sin reemplazar"; exit 1; fi
+
+      - name: shellcheck de los scripts
+        run: shellcheck -S warning EV3/script/*.sh EV3/app/scripts/*.sh
+
+  # ═══════════════ Infraestructura: desplegar, infraestructura, plan, eliminar ═══════════════
+
+  infra:
+    name: infraestructura · terraform
+    if: github.event_name == 'workflow_dispatch' && contains(fromJSON('["desplegar","infraestructura","plan","eliminar"]'), inputs.accion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90 # EKS ~12 min, node group ~5, RDS Multi-AZ ~15-20, API Gateway y Lambdas ~5 (en paralelo)
+    # Nunca dos operaciones sobre el mismo estado a la vez.
+    concurrency:
+      group: freshbox-ep3-terraform
+      cancel-in-progress: false
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_aws_region: us-east-1
+      TF_VAR_create_eks: ${{ inputs.accion == 'desplegar' || inputs.crear_eks }}
+      # Solo si el clúster va a desaparecer: eliminar, o infraestructura sin crear_eks.
+      QUITA_EKS: ${{ inputs.accion == 'eliminar' || (inputs.accion == 'infraestructura' && !inputs.crear_eks) }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # EP1 y EP2 crean repositorios con estos mismos nombres. freshbox-frontend solo
+      # existe en ellos (EP3 sirve el sitio desde S3): si esta, Terraform chocaria.
+      - name: Verificar que no queden EP1 ni EP2 en la cuenta
+        if: inputs.accion != 'eliminar'
+        run: |
+          if aws ecr describe-repositories --repository-names freshbox-frontend --region "$AWS_REGION" > /dev/null 2>&1; then
+            echo "Existe el repositorio freshbox-frontend: queda un stack EP1 o EP2 en la cuenta."
+            echo "Ejecuta antes la accion eliminar del workflow de EP2 y vuelve a correr esta."
+            exit 1
+          fi
+
+      - name: Instalar Node (dependencias de Process-Order)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # El precondition de lambda.tf exige node_modules/mysql2 antes de plan y apply.
+      - name: Dependencias de Lambda Process-Order
+        run: |
+          cd EV3/app/lambda/procesar-orden
+          npm install --omit=dev --no-audit --no-fund
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      # Bucket de estado + tabla de bloqueo (idempotente), antes de que Terraform
+      # toque la cuenta. Son los mismos de EV1 y EV2.
+      - name: Backend de estado (S3 + DynamoDB si no existen)
+        run: bash EV3/script/bootstrap-tfstate.sh
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform fmt + validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive
+          terraform validate
+
+      # El ALB del Ingress y el sitio en S3 no son de Terraform: sin retirarlos antes,
+      # el ALB bloquearia la VPC y el bucket impediria la limpieza.
+      - name: Instalar kubectl
+        if: env.QUITA_EKS == 'true'
+        uses: azure/setup-kubectl@v4
+
+      - name: Retirar el ALB del Ingress y los pods
+        if: env.QUITA_EKS == 'true'
+        run: bash EV3/script/bajar-k8s.sh
+
+      - name: Vaciar y borrar el bucket del sitio (S3)
+        if: inputs.accion == 'eliminar'
+        run: bash EV3/script/bajar-frontend.sh
+
+      - name: Terraform plan
+        if: inputs.accion == 'plan'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform plan -input=false -no-color | tee plan.txt
+          { echo "### terraform plan"; echo '```'; tail -n 250 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform apply
+        if: inputs.accion == 'desplegar' || inputs.accion == 'infraestructura'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -input=false -auto-approve
+
+      - name: Terraform destroy
+        if: inputs.accion == 'eliminar'
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform destroy -input=false -auto-approve
+
+      # Container Insights crea sus grupos de logs desde el clúster (fuera de Terraform).
+      - name: Borrar logs de Container Insights
+        if: inputs.accion == 'eliminar'
+        run: |
+          for LG in $(aws logs describe-log-groups --log-group-name-prefix /aws/containerinsights/freshbox-cluster \
+                        --query 'logGroups[].logGroupName' --output text); do
+            echo "Borrando $LG"
+            aws logs delete-log-group --log-group-name "$LG"
+          done
+
+      - name: Resumen
+        if: inputs.accion == 'desplegar' || inputs.accion == 'infraestructura'
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          RDS="$(terraform output -raw rds_identifier)"
+          {
+            echo "### EP3 — Infraestructura lista"
+            echo ""
+            if [ "$(terraform output -raw eks_enabled)" = "true" ]; then
+              echo "Clúster EKS \`$(terraform output -raw cluster_name)\`, RDS \`$RDS\` (Multi-AZ), DynamoDB, SQS, Lambdas y API Gateway."
+            else
+              echo "Base lista (red, SG, ECR, RDS \`$RDS\`, DynamoDB, SQS, Lambdas, API Gateway), **sin clúster EKS**."
+              echo "Para agregarlo: acción *infraestructura* con *crear_eks* marcado, o *desplegar*."
+            fi
+            echo ""
+            echo '```'; terraform output; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ═══════════════ Aplicación: desplegar, actualizar-app ═══════════════
+
+  tag:
+    name: app · tag de las imágenes
+    if: github.event_name == 'workflow_dispatch' && (inputs.accion == 'desplegar' || inputs.accion == 'actualizar-app')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - id: t
+        env:
+          INPUT_TAG: ${{ inputs.image_tag }}
+        run: echo "tag=${INPUT_TAG:-${GITHUB_SHA::7}}" >> "$GITHUB_OUTPUT"
+
+  # En "desplegar" espera a la infraestructura; en "actualizar-app" el job infra se
+  # omite y la construcción parte de inmediato.
+  build:
+    name: app · build+push
+    needs: [infra, tag]
+    if: ${{ !cancelled() && needs.tag.result == 'success' && (needs.infra.result == 'success' || needs.infra.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        servicio: [get-products, create-product, update-product, delete-product]
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # QEMU permite construir arm64 en el runner x86_64.
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push ${{ matrix.servicio }} (linux/arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}/microserviciosBackend/${{ matrix.servicio }}
+          platforms: linux/arm64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/freshbox-${{ matrix.servicio }}:${{ needs.tag.outputs.tag }}
+            ${{ steps.ecr.outputs.registry }}/freshbox-${{ matrix.servicio }}:latest
+          cache-from: type=gha,scope=ep3-${{ matrix.servicio }}
+          cache-to: type=gha,mode=max,scope=ep3-${{ matrix.servicio }}
+
+      - name: Resumen
+        run: echo "- \`freshbox-${{ matrix.servicio }}\` → \`${{ needs.tag.outputs.tag }}\`, \`latest\` (linux/arm64)" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: app · EKS + sitio S3 + prueba end-to-end
+    needs: [tag, build]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      IMAGE_TAG: ${{ needs.tag.outputs.tag }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (Learner Lab)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v4
+
+      # Solo para leer las salidas (endpoint de RDS, clave, SG-ALB, API Gateway); no cambia nada.
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false
+
+      - name: Aplicar manifiestos en EKS y albHost en API Gateway
+        id: k8s
+        run: bash EV3/script/aplicar-k8s.sh
+
+      - name: Publicar el sitio en S3 (con la URL de API Gateway)
+        id: sitio
+        run: bash EV3/script/publicar-frontend.sh
+
+      - name: Prueba de punta a punta por API Gateway
+        shell: bash # -o pipefail: si falla la prueba, falla el paso aunque pase por tee
+        run: bash EV3/script/probar-flujo.sh | tee flujo.txt
+
+      - name: Resumen
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          {
+            echo "## FreshBox EP3 (serverless híbrido)"
+            echo "- Sitio (S3): ${{ steps.sitio.outputs.frontend_url }}"
+            echo "- API Gateway: $(terraform output -raw api_url)"
+            echo "- ALB de EKS: ${{ steps.k8s.outputs.alb_url }}"
+            echo "- Imágenes: \`freshbox-*:$IMAGE_TAG\`"
+            echo ""
+            echo "### Prueba de punta a punta"
+            echo '```'; cat "$GITHUB_WORKSPACE/flujo.txt"; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
