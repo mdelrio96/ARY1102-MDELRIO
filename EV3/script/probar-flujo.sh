@@ -2,7 +2,7 @@
 # ============================================
 # Prueba de punta a punta de FreshBox EP3, siempre por API Gateway (la entrada
 # unica de la app), igual que la usaria el sitio de S3:
-#   1. CRUD de productos: GET, POST, PUT, GET por id, DELETE y GET final (404)
+#   1. CRUD de productos: GET, POST, PUT, DELETE, y la lista tras cada cambio
 #   2. carrito: POST, GET (con el total) y su limpieza al final
 #   3. orden: POST /api/orders -> SQS -> Process-Order -> tabla ordenes en RDS
 # Crea un producto temporal y lo borra; la orden queda registrada en RDS.
@@ -55,18 +55,25 @@ curl -fsS -X PUT -H 'Content-Type: application/json' \
   -d '{"nombre":"Prueba CRUD EP3 (editado)","descripcion":"Registro temporal modificado","precio":2490,"stock":3,"categoria":"Prueba"}' "$API/$ID"
 echo
 
-paso "GET /api/products/$ID (get-products)"
-curl -fsS "$API/$ID"
-echo
+# API Gateway expone las 8 rutas de la pauta y GET por id no es una de ellas:
+# la lectura se verifica con la lista completa.
+paso "GET /api/products (la lista trae el producto $ID editado)"
+LISTA="$(curl -fsS "$API")"
+[[ "$LISTA" == *"\"id\":$ID,\"nombre\":\"Prueba CRUD EP3 (editado)\""* ]] \
+  || { echo "El producto $ID editado no aparece en la lista"; exit 1; }
+echo "El producto $ID aparece con el nombre editado"
 
 paso "DELETE /api/products/$ID (delete-product)"
 curl -fsS -X DELETE "$API/$ID"
 echo
 
-paso "GET /api/products/$ID (debe responder 404)"
-CODE="$(curl -s -o /dev/null -w '%{http_code}' "$API/$ID")"
-echo "HTTP $CODE"
-[ "$CODE" = 404 ] || { echo "El producto $ID sigue existiendo"; exit 1; }
+paso "GET /api/products (la lista ya no trae el producto $ID)"
+LISTA="$(curl -fsS "$API")"
+if [[ "$LISTA" == *"\"id\":$ID,"* ]]; then
+  echo "El producto $ID sigue existiendo"
+  exit 1
+fi
+echo "El producto $ID ya no aparece"
 
 # --- 2. Carrito (Lambda Cart + DynamoDB por VPC Endpoint) ---
 paso "POST /api/cart (Lambda Cart)"
