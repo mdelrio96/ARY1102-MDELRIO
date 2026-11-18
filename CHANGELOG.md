@@ -82,6 +82,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 
 - `2026-09-19` **ev1:** Rolling manual de EC2 App en vez de instance refresh ([19cfca1](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/19cfca1b968de42e1988b72a8a06655cc672e6c9))
 - `2026-10-24` **ev2:** ALB del Ingress sin etiquetas propias (Auto Mode rechazaba CreateRule) y recreacion del Ingress sin DNS ([e174bcf](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e174bcf6d967f812fb558f3a2982ed7c526b9346))
+- `2026-11-18` **ev3:** Abre a los pods 3001-3004 el acceso desde SG-ALB ([2d580ff](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/2d580fff148f08c93506b7295cec1a003c7d7358))
 
 ### CI/CD
 

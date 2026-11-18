@@ -68,6 +68,10 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-11-18` **ev3:** Agrega EV3/script/publicar-frontend.sh ([7655ca5](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/7655ca5f99ae57870ee201a335cf80220fdb3977))
 - `2026-11-18` **ev3:** Agrega EV3/script/desbloquear-estado.sh ([3ac1c42](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3ac1c42042e8f9356b46c8849298d381eba2ffa3))
 
+### Corregido
+
+- `2026-11-18` **ev3:** Abre a los pods 3001-3004 el acceso desde SG-ALB ([2d580ff](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/2d580fff148f08c93506b7295cec1a003c7d7358))
+
 ### CI/CD
 
 - `2026-11-18` **ev3:** Agrega el workflow ep3-freshbox ([f0cab35](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f0cab3573affa284c0216b29e8a62e1169009a45))
