@@ -21,3 +21,7 @@ __pycache__/
 
 # Manifiestos con valores reales (clave de RDS) que genera EV2/script/aplicar-k8s.sh
 .render/
+
+# Paquetes .zip de las Lambdas que arma Terraform (archive_file) y dependencias npm
+**/.build/
+node_modules/
