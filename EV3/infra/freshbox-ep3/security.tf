@@ -36,20 +36,25 @@ resource "aws_security_group" "alb" {
 
 # Sin la etiqueta kubernetes.io/cluster/<cluster>: el controlador del ALB espera
 # encontrar exactamente un SG etiquetado en la ENI del pod (el del cluster).
+# La descripcion viene de EV2 y no se cambia: en AWS es inmutable y editarla
+# obligaria a recrear el SG (y con el, los nodos y la regla de RDS).
 resource "aws_security_group" "eks" {
   name        = "${local.name}-sg-eks"
   description = "Nodos y pods EKS: solo el ALB llega a 80/443"
   vpc_id      = aws_vpc.main.id
 
-  dynamic "ingress" {
-    for_each = [80, 443]
-    content {
-      description     = "SG-ALB a pods ${ingress.value}"
-      from_port       = ingress.value
-      to_port         = ingress.value
-      protocol        = "tcp"
-      security_groups = [aws_security_group.alb.id]
-    }
+  # EP3 no tiene frontend en EKS: el ALB (target-type ip) llega directo a la IP
+  # de cada pod, en el puerto de su microservicio (get 3001, create 3002,
+  # update 3003, delete 3004), tanto para el trafico como para el health check
+  # /health. Con la anotacion security-groups en el Ingress, Auto Mode no agrega
+  # reglas de backend por su cuenta: sin esta regla los targets quedan unhealthy
+  # y el ALB responde 503.
+  ingress {
+    description     = "SG-ALB a pods 3001-3004 (microservicios)"
+    from_port       = 3001
+    to_port         = 3004
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {
