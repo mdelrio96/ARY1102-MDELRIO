@@ -71,6 +71,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 ### Corregido
 
 - `2026-11-18` **ev3:** Abre a los pods 3001-3004 el acceso desde SG-ALB ([2d580ff](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/2d580fff148f08c93506b7295cec1a003c7d7358))
+- `2026-11-18` **ev3:** La prueba verifica el CRUD con la lista, no con GET por id ([fdabb5d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/fdabb5dc123cb5f19d9aa307f116d0e93a9fa710))
 
 ### CI/CD
 
