@@ -1,0 +1,2817 @@
+{
+ "title": "D1 v2 · Arquitectura TO-BE híbrida FreshBox (EP3)",
+ "elements": [
+  {
+   "tag": "Shape",
+   "id": "s1",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 8,
+   "width": 1450,
+   "height": 36,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "ARQUITECTURA TO-BE HÍBRIDA · FRESHBOX SPA",
+     "fontSize": 24,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s2",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 46,
+   "width": 1450,
+   "height": 22,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon EKS para el CRUD de productos · Lambda, DynamoDB y SQS para carrito y órdenes · frontend en S3 · us-east-1",
+     "fontSize": 13,
+     "color": "#1F3A5F"
+    }
+   ]
+  },
+  {
+   "tag": "Icon",
+   "id": "i3",
+   "icon": "users",
+   "x": 40,
+   "y": 116,
+   "width": 58,
+   "height": 58,
+   "texts": [
+    {
+     "text": "Usuarios\n(navegador)",
+     "fontSize": 12
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s4",
+   "shape": "rectangle",
+   "x": 170,
+   "y": 95,
+   "width": 250,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#7AA116",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i5",
+   "icon": "aws-s3",
+   "x": 182,
+   "y": 121,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s6",
+   "shape": "rectangle",
+   "x": 242,
+   "y": 99,
+   "width": 172,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon S3",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Static Website Hosting\nfreshbox-frontend-<cuenta>",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s7",
+   "shape": "ellipse",
+   "x": 158,
+   "y": 83,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "1",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s8",
+   "shape": "rectangle",
+   "x": 520,
+   "y": 95,
+   "width": 270,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#E7157B",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i9",
+   "icon": "aws-api-gateway",
+   "x": 532,
+   "y": 121,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s10",
+   "shape": "rectangle",
+   "x": 592,
+   "y": 99,
+   "width": 192,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon API Gateway",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "freshbox-api · REST · stage prod\nentrada única · CORS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s11",
+   "shape": "ellipse",
+   "x": 508,
+   "y": 83,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "2",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s12",
+   "shape": "rectangle",
+   "x": 1180,
+   "y": 95,
+   "width": 290,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#8C4FFF",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i13",
+   "icon": "aws-elb-application-load-balancer",
+   "x": 1192,
+   "y": 121,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s14",
+   "shape": "rectangle",
+   "x": 1252,
+   "y": 99,
+   "width": 212,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "ALB Ingress (EKS)",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "HTTP Integration · internet-facing\nuna regla por método · SG-ALB",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s15",
+   "shape": "ellipse",
+   "x": 1168,
+   "y": 83,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "8",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s16",
+   "shape": "rectangle",
+   "x": 1358,
+   "y": 86,
+   "width": 104,
+   "height": 18,
+   "bgColor": "#3F8F29",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "PÚBLICA",
+     "fontSize": 10,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r17",
+   "from": "i3",
+   "to": "s4",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 98,
+   "y": 145,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     72,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "HTTP 80",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r18",
+   "from": "s4",
+   "to": "s8",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 420,
+   "y": 145,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     100,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "fetch · HTTPS 443",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r19",
+   "from": "s8",
+   "to": "s12",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 790,
+   "y": 145,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     390,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "/api/products · GET · POST · PUT · DELETE",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s20",
+   "shape": "rectangle",
+   "x": 880,
+   "y": 150,
+   "width": 210,
+   "height": 18,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "HTTP 80 · vía IGW",
+     "fontSize": 10,
+     "color": "#1F4E9E"
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s21",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 290,
+   "width": 260,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#ED7100",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i22",
+   "icon": "aws-lambda",
+   "x": 52,
+   "y": 316,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s23",
+   "shape": "rectangle",
+   "x": 112,
+   "y": 294,
+   "width": 182,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Lambda Cart",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "freshbox-procesar-carrito\nPOST · GET · DELETE del carrito",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s24",
+   "shape": "ellipse",
+   "x": 28,
+   "y": 278,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "3",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s25",
+   "shape": "rectangle",
+   "x": 360,
+   "y": 290,
+   "width": 290,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#ED7100",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i26",
+   "icon": "aws-lambda",
+   "x": 372,
+   "y": 316,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s27",
+   "shape": "rectangle",
+   "x": 432,
+   "y": 294,
+   "width": 212,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Lambda Create-Order",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "freshbox-crear-orden\nlee el carrito, calcula el total\ny publica la orden en SQS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s28",
+   "shape": "ellipse",
+   "x": 348,
+   "y": 278,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "4",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r29",
+   "from": "s8",
+   "to": "s21",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 600,
+   "y": 195,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     55
+    ],
+    [
+     -430,
+     55
+    ],
+    [
+     -430,
+     95
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "/api/cart · GET · POST · DELETE",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r30",
+   "from": "s8",
+   "to": "s25",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 600,
+   "y": 195,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     55
+    ],
+    [
+     -95,
+     55
+    ],
+    [
+     -95,
+     95
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "/api/orders · POST",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s31",
+   "shape": "rectangle",
+   "x": 860,
+   "y": 300,
+   "width": 250,
+   "height": 80,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#ED7100",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i32",
+   "icon": "aws-elastic-container-registry",
+   "x": 872,
+   "y": 320,
+   "width": 40,
+   "height": 40
+  },
+  {
+   "tag": "Shape",
+   "id": "s33",
+   "shape": "rectangle",
+   "x": 924,
+   "y": 304,
+   "width": 180,
+   "height": 72,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon ECR",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "4 repositorios freshbox-*\nimágenes linux/arm64",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s34",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 460,
+   "width": 260,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#C925D1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i35",
+   "icon": "aws-dynamodb",
+   "x": 52,
+   "y": 486,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s36",
+   "shape": "rectangle",
+   "x": 112,
+   "y": 464,
+   "width": 182,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon DynamoDB",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "carrito-freshbox · on-demand\nPK userId · SK productId\nTTL expiresAt = 24 h",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s37",
+   "shape": "ellipse",
+   "x": 28,
+   "y": 448,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "6",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s38",
+   "shape": "rectangle",
+   "x": 500,
+   "y": 460,
+   "width": 280,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#E7157B",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i39",
+   "icon": "aws-sqs",
+   "x": 512,
+   "y": 486,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s40",
+   "shape": "rectangle",
+   "x": 572,
+   "y": 464,
+   "width": 202,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon SQS",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "ordenes-freshbox · cifrada (SSE)\nentrega por lotes a Process-Order",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s41",
+   "shape": "ellipse",
+   "x": 488,
+   "y": 448,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "7",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s42",
+   "shape": "rectangle",
+   "x": 850,
+   "y": 460,
+   "width": 280,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#ED7100",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i43",
+   "icon": "aws-lambda",
+   "x": 862,
+   "y": 486,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s44",
+   "shape": "rectangle",
+   "x": 922,
+   "y": 464,
+   "width": 202,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Lambda Process-Order",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s45",
+   "shape": "ellipse",
+   "x": 838,
+   "y": 448,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "5",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s46",
+   "shape": "rectangle",
+   "x": 1018,
+   "y": 451,
+   "width": 104,
+   "height": 18,
+   "bgColor": "#1F6FB2",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "PRIVADA APP",
+     "fontSize": 10,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s47",
+   "shape": "rectangle",
+   "x": 575,
+   "y": 584,
+   "width": 210,
+   "height": 52,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#E7157B",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i48",
+   "icon": "aws-sqs",
+   "x": 587,
+   "y": 594,
+   "width": 32,
+   "height": 32
+  },
+  {
+   "tag": "Shape",
+   "id": "s49",
+   "shape": "rectangle",
+   "x": 631,
+   "y": 588,
+   "width": 148,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "DLQ",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "ordenes-freshbox-dlq",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r50",
+   "from": "s21",
+   "to": "s34",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 170,
+   "y": 390,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     70
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "Put · Query · Delete",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r51",
+   "from": "s25",
+   "to": "s34",
+   "fromPort": "bottom",
+   "toPort": "right",
+   "x": 418,
+   "y": 390,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     120
+    ],
+    [
+     -118,
+     120
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "Query carrito",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r52",
+   "from": "s25",
+   "to": "s38",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 592,
+   "y": 390,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     70
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7D3C98",
+   "lineWidth": 2,
+   "label": "SendMessage",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r53",
+   "from": "s38",
+   "to": "s42",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 780,
+   "y": 510,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     70,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7D3C98",
+   "lineWidth": 2,
+   "label": "trigger (lotes)",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r54",
+   "from": "s38",
+   "to": "s47",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 680,
+   "y": 560,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     24
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7D3C98",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Shape",
+   "id": "s55",
+   "shape": "rectangle",
+   "x": 690,
+   "y": 563,
+   "width": 150,
+   "height": 16,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "tras 3 intentos fallidos",
+     "fontSize": 10,
+     "color": "#7D3C98",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s56",
+   "shape": "rectangle",
+   "x": 400,
+   "y": 660,
+   "width": 260,
+   "height": 80,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#8C4FFF",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i57",
+   "icon": "aws-vpc-endpoints",
+   "x": 412,
+   "y": 678,
+   "width": 44,
+   "height": 44
+  },
+  {
+   "tag": "Shape",
+   "id": "s58",
+   "shape": "rectangle",
+   "x": 468,
+   "y": 664,
+   "width": 186,
+   "height": 72,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "VPC Endpoint Gateway",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s59",
+   "shape": "ellipse",
+   "x": 388,
+   "y": 648,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "11",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r60",
+   "from": "s42",
+   "to": "s56",
+   "fromPort": "bottom",
+   "toPort": "right",
+   "x": 900,
+   "y": 560,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     140
+    ],
+    [
+     -240,
+     140
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "borra el carrito · HTTPS 443",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r61",
+   "from": "s56",
+   "to": "s34",
+   "fromPort": "left",
+   "toPort": "bottom",
+   "x": 400,
+   "y": 700,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     -230,
+     0
+    ],
+    [
+     -230,
+     -140
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "acceso privado",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s62",
+   "shape": "rectangle",
+   "x": 1180,
+   "y": 285,
+   "width": 290,
+   "height": 300,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#ED7100",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i63",
+   "icon": "aws-eks",
+   "x": 1192,
+   "y": 293,
+   "width": 36,
+   "height": 36
+  },
+  {
+   "tag": "Shape",
+   "id": "s64",
+   "shape": "rectangle",
+   "x": 1236,
+   "y": 291,
+   "width": 228,
+   "height": 20,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon EKS · freshbox-cluster",
+     "fontSize": 12,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s65",
+   "shape": "rectangle",
+   "x": 1236,
+   "y": 311,
+   "width": 228,
+   "height": 18,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "CRUD de productos (4 Deployments)",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s66",
+   "shape": "ellipse",
+   "x": 1168,
+   "y": 273,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "9",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s67",
+   "shape": "rectangle",
+   "x": 1358,
+   "y": 276,
+   "width": 104,
+   "height": 18,
+   "bgColor": "#1F6FB2",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "PRIVADA APP",
+     "fontSize": 10,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s68",
+   "shape": "rectangle",
+   "x": 1192,
+   "y": 341,
+   "width": 266,
+   "height": 196,
+   "bgColor": "#FFF8F0",
+   "borderColor": "#ED7100",
+   "styleMode": "plain",
+   "borderStyle": "dashed"
+  },
+  {
+   "tag": "Shape",
+   "id": "s69",
+   "shape": "rectangle",
+   "x": 1200,
+   "y": 352,
+   "width": 120,
+   "height": 82,
+   "bgColor": "#EAF1FF",
+   "borderColor": "#326CE5",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "get-products\nGET · :3001",
+     "fontSize": 11,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s70",
+   "shape": "rectangle",
+   "x": 1330,
+   "y": 352,
+   "width": 120,
+   "height": 82,
+   "bgColor": "#EAF1FF",
+   "borderColor": "#326CE5",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "create-product\nPOST · :3002",
+     "fontSize": 11,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s71",
+   "shape": "rectangle",
+   "x": 1200,
+   "y": 444,
+   "width": 120,
+   "height": 82,
+   "bgColor": "#EAF1FF",
+   "borderColor": "#326CE5",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "update-product\nPUT · :3003",
+     "fontSize": 11,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s72",
+   "shape": "rectangle",
+   "x": 1330,
+   "y": 444,
+   "width": 120,
+   "height": 82,
+   "bgColor": "#EAF1FF",
+   "borderColor": "#326CE5",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "delete-product\nDELETE · :3004",
+     "fontSize": 11,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s73",
+   "shape": "rectangle",
+   "x": 1185,
+   "y": 541,
+   "width": 280,
+   "height": 32,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group 2–4 × t4g.small · EBS cifrado",
+     "fontSize": 10,
+     "color": "#5A6B7B"
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r74",
+   "from": "s12",
+   "to": "s62",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 1325,
+   "y": 195,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     90
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "HTTP :3001–3004",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r75",
+   "from": "s31",
+   "to": "s62",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 1110,
+   "y": 340,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     70,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7F8C8D",
+   "lineWidth": 2,
+   "label": "pull de imágenes",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s76",
+   "shape": "rectangle",
+   "x": 1180,
+   "y": 640,
+   "width": 290,
+   "height": 100,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#C925D1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i77",
+   "icon": "aws-rds",
+   "x": 1192,
+   "y": 666,
+   "width": 48,
+   "height": 48
+  },
+  {
+   "tag": "Shape",
+   "id": "s78",
+   "shape": "rectangle",
+   "x": 1252,
+   "y": 644,
+   "width": 212,
+   "height": 92,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon RDS MySQL 8.0",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s79",
+   "shape": "ellipse",
+   "x": 1168,
+   "y": 628,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "10",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s80",
+   "shape": "rectangle",
+   "x": 1358,
+   "y": 631,
+   "width": 104,
+   "height": 18,
+   "bgColor": "#7D3C98",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "PRIVADA DATA",
+     "fontSize": 10,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r81",
+   "from": "s62",
+   "to": "s76",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 1325,
+   "y": 585,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     55
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "MySQL 3306",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r82",
+   "from": "s42",
+   "to": "s76",
+   "fromPort": "bottom",
+   "toPort": "left",
+   "x": 1070,
+   "y": 560,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     130
+    ],
+    [
+     110,
+     130
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "INSERT orden · MySQL 3306",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s83",
+   "shape": "rectangle",
+   "x": 1180,
+   "y": 756,
+   "width": 290,
+   "height": 58,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#E7157B",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i84",
+   "icon": "aws-cloudwatch",
+   "x": 1192,
+   "y": 767,
+   "width": 36,
+   "height": 36
+  },
+  {
+   "tag": "Shape",
+   "id": "s85",
+   "shape": "rectangle",
+   "x": 1240,
+   "y": 760,
+   "width": 224,
+   "height": 50,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Amazon CloudWatch",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "logs de Lambda, API Gateway y EKS\nmétricas de RDS y SQS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s86",
+   "shape": "rectangle",
+   "x": 1180,
+   "y": 824,
+   "width": 290,
+   "height": 58,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#DD344C",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i87",
+   "icon": "aws-key-management-service",
+   "x": 1192,
+   "y": 835,
+   "width": 36,
+   "height": 36
+  },
+  {
+   "tag": "Shape",
+   "id": "s88",
+   "shape": "rectangle",
+   "x": 1240,
+   "y": 828,
+   "width": 224,
+   "height": 50,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "AWS KMS",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "cifrado en reposo de EBS, RDS,\nSQS y DynamoDB",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Group",
+   "id": "g89",
+   "x": 20,
+   "y": 910,
+   "width": 1450,
+   "height": 290,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#3F8F29",
+   "title": {
+    "text": "VPC freshbox-vpc · 10.0.0.0/22",
+    "color": "#2E6B1E",
+    "fontSize": 14,
+    "icon": "aws-vpc"
+   }
+  },
+  {
+   "tag": "Shape",
+   "id": "s90",
+   "shape": "ellipse",
+   "x": 8,
+   "y": 898,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "13",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Icon",
+   "id": "i91",
+   "icon": "aws-internet-gateway",
+   "x": 488,
+   "y": 888,
+   "width": 40,
+   "height": 40
+  },
+  {
+   "tag": "Shape",
+   "id": "s92",
+   "shape": "rectangle",
+   "x": 534,
+   "y": 888,
+   "width": 150,
+   "height": 18,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Internet Gateway",
+     "fontSize": 11,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s93",
+   "shape": "rectangle",
+   "x": 120,
+   "y": 940,
+   "width": 380,
+   "height": 28,
+   "bgColor": "#E9F3DF",
+   "borderColor": "#3F8F29",
+   "styleMode": "plain",
+   "containerId": "g89"
+  },
+  {
+   "tag": "Icon",
+   "id": "i94",
+   "icon": "aws-route-table",
+   "x": 126,
+   "y": 943,
+   "width": 22,
+   "height": 22,
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s95",
+   "shape": "rectangle",
+   "x": 152,
+   "y": 940,
+   "width": 344,
+   "height": 28,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Capa 1 · PÚBLICA — RT: 0.0.0.0/0 → Internet Gateway",
+     "fontSize": 11,
+     "color": "#2E6B1E",
+     "bold": true
+    }
+   ],
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s96",
+   "shape": "rectangle",
+   "x": 515,
+   "y": 940,
+   "width": 525,
+   "height": 28,
+   "bgColor": "#E6F0FA",
+   "borderColor": "#1F6FB2",
+   "styleMode": "plain",
+   "containerId": "g89"
+  },
+  {
+   "tag": "Icon",
+   "id": "i97",
+   "icon": "aws-route-table",
+   "x": 521,
+   "y": 943,
+   "width": 22,
+   "height": 22,
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s98",
+   "shape": "rectangle",
+   "x": 547,
+   "y": 940,
+   "width": 489,
+   "height": 28,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Capa 2 · PRIVADA APP — RT: 0.0.0.0/0 → NAT · DynamoDB → VPC Endpoint (11)",
+     "fontSize": 11,
+     "color": "#0B4F79",
+     "bold": true
+    }
+   ],
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s99",
+   "shape": "rectangle",
+   "x": 1055,
+   "y": 940,
+   "width": 395,
+   "height": 28,
+   "bgColor": "#EFE6F7",
+   "borderColor": "#7D3C98",
+   "styleMode": "plain",
+   "containerId": "g89"
+  },
+  {
+   "tag": "Icon",
+   "id": "i100",
+   "icon": "aws-route-table",
+   "x": 1061,
+   "y": 943,
+   "width": 22,
+   "height": 22,
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s101",
+   "shape": "rectangle",
+   "x": 1087,
+   "y": 940,
+   "width": 359,
+   "height": 28,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Capa 3 · PRIVADA DATA — RT: solo ruta local",
+     "fontSize": 11,
+     "color": "#5A2D82",
+     "bold": true
+    }
+   ],
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s102",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 975,
+   "width": 1430,
+   "height": 100,
+   "bgColor": "transparent",
+   "borderColor": "#1F6FB2",
+   "styleMode": "plain",
+   "borderStyle": "dashed",
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s103",
+   "shape": "rectangle",
+   "x": 34,
+   "y": 975,
+   "width": 82,
+   "height": 100,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "AZ1a\nus-east-1a",
+     "fontSize": 12,
+     "color": "#1F6FB2",
+     "bold": true
+    }
+   ],
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s104",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 1085,
+   "width": 1430,
+   "height": 100,
+   "bgColor": "transparent",
+   "borderColor": "#1F6FB2",
+   "styleMode": "plain",
+   "borderStyle": "dashed",
+   "containerId": "g89"
+  },
+  {
+   "tag": "Shape",
+   "id": "s105",
+   "shape": "rectangle",
+   "x": 34,
+   "y": 1085,
+   "width": 82,
+   "height": 100,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "AZ1b\nus-east-1b",
+     "fontSize": 12,
+     "color": "#1F6FB2",
+     "bold": true
+    }
+   ],
+   "containerId": "g89"
+  },
+  {
+   "tag": "Group",
+   "id": "g106",
+   "x": 120,
+   "y": 982,
+   "width": 380,
+   "height": 86,
+   "bgColor": "#E9F3DF",
+   "borderColor": "#3F8F29",
+   "title": {
+    "text": "Pública 1a · 10.0.0.0/25",
+    "color": "#2E6B1E",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Group",
+   "id": "g107",
+   "x": 515,
+   "y": 982,
+   "width": 525,
+   "height": 86,
+   "bgColor": "#E6F0FA",
+   "borderColor": "#1F6FB2",
+   "title": {
+    "text": "Privada APP 1a · 10.0.1.0/25",
+    "color": "#0B4F79",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Group",
+   "id": "g108",
+   "x": 1055,
+   "y": 982,
+   "width": 395,
+   "height": 86,
+   "bgColor": "#EFE6F7",
+   "borderColor": "#7D3C98",
+   "title": {
+    "text": "Privada DATA 1a · 10.0.2.0/25",
+    "color": "#5A2D82",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Icon",
+   "id": "i109",
+   "icon": "aws-elb-application-load-balancer",
+   "x": 140,
+   "y": 1018,
+   "width": 36,
+   "height": 36,
+   "containerId": "g106"
+  },
+  {
+   "tag": "Shape",
+   "id": "s110",
+   "shape": "rectangle",
+   "x": 182,
+   "y": 1014,
+   "width": 150,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(8) ALB · nodo 1a",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g106"
+  },
+  {
+   "tag": "Icon",
+   "id": "i111",
+   "icon": "aws-ec2",
+   "x": 535,
+   "y": 1018,
+   "width": 36,
+   "height": 36,
+   "containerId": "g107"
+  },
+  {
+   "tag": "Shape",
+   "id": "s112",
+   "shape": "rectangle",
+   "x": 577,
+   "y": 1014,
+   "width": 200,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(9) Nodo EKS t4g.small\n4 pods CRUD",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g107"
+  },
+  {
+   "tag": "Icon",
+   "id": "i113",
+   "icon": "aws-lambda",
+   "x": 800,
+   "y": 1018,
+   "width": 36,
+   "height": 36,
+   "containerId": "g107"
+  },
+  {
+   "tag": "Shape",
+   "id": "s114",
+   "shape": "rectangle",
+   "x": 842,
+   "y": 1014,
+   "width": 196,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(5) ENI de Process-Order\n(SG-LAMBDA)",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g107"
+  },
+  {
+   "tag": "Icon",
+   "id": "i115",
+   "icon": "aws-nat-gateway",
+   "x": 450,
+   "y": 1018,
+   "width": 36,
+   "height": 36,
+   "containerId": "g106"
+  },
+  {
+   "tag": "Shape",
+   "id": "s116",
+   "shape": "rectangle",
+   "x": 338,
+   "y": 1014,
+   "width": 106,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "NAT Gateway\n(único, en 1a)",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g106"
+  },
+  {
+   "tag": "Icon",
+   "id": "i117",
+   "icon": "aws-rds",
+   "x": 1075,
+   "y": 1018,
+   "width": 36,
+   "height": 36,
+   "containerId": "g108"
+  },
+  {
+   "tag": "Shape",
+   "id": "s118",
+   "shape": "rectangle",
+   "x": 1117,
+   "y": 1014,
+   "width": 220,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(10) RDS primaria\nlectura y escritura",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g108"
+  },
+  {
+   "tag": "Group",
+   "id": "g119",
+   "x": 120,
+   "y": 1092,
+   "width": 380,
+   "height": 86,
+   "bgColor": "#E9F3DF",
+   "borderColor": "#3F8F29",
+   "title": {
+    "text": "Pública 1b · 10.0.0.128/25",
+    "color": "#2E6B1E",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Group",
+   "id": "g120",
+   "x": 515,
+   "y": 1092,
+   "width": 525,
+   "height": 86,
+   "bgColor": "#E6F0FA",
+   "borderColor": "#1F6FB2",
+   "title": {
+    "text": "Privada APP 1b · 10.0.1.128/25",
+    "color": "#0B4F79",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Group",
+   "id": "g121",
+   "x": 1055,
+   "y": 1092,
+   "width": 395,
+   "height": 86,
+   "bgColor": "#EFE6F7",
+   "borderColor": "#7D3C98",
+   "title": {
+    "text": "Privada DATA 1b · 10.0.2.128/25",
+    "color": "#5A2D82",
+    "fontSize": 12,
+    "icon": "lock"
+   },
+   "containerId": "g89"
+  },
+  {
+   "tag": "Icon",
+   "id": "i122",
+   "icon": "aws-elb-application-load-balancer",
+   "x": 140,
+   "y": 1128,
+   "width": 36,
+   "height": 36,
+   "containerId": "g119"
+  },
+  {
+   "tag": "Shape",
+   "id": "s123",
+   "shape": "rectangle",
+   "x": 182,
+   "y": 1124,
+   "width": 150,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(8) ALB · nodo 1b",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g119"
+  },
+  {
+   "tag": "Icon",
+   "id": "i124",
+   "icon": "aws-ec2",
+   "x": 535,
+   "y": 1128,
+   "width": 36,
+   "height": 36,
+   "containerId": "g120"
+  },
+  {
+   "tag": "Shape",
+   "id": "s125",
+   "shape": "rectangle",
+   "x": 577,
+   "y": 1124,
+   "width": 200,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(9) Nodo EKS t4g.small\n4 pods CRUD",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g120"
+  },
+  {
+   "tag": "Icon",
+   "id": "i126",
+   "icon": "aws-lambda",
+   "x": 800,
+   "y": 1128,
+   "width": 36,
+   "height": 36,
+   "containerId": "g120"
+  },
+  {
+   "tag": "Shape",
+   "id": "s127",
+   "shape": "rectangle",
+   "x": 842,
+   "y": 1124,
+   "width": 196,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(5) ENI de Process-Order\n(SG-LAMBDA)",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g120"
+  },
+  {
+   "tag": "Icon",
+   "id": "i128",
+   "icon": "aws-rds",
+   "x": 1075,
+   "y": 1128,
+   "width": 36,
+   "height": 36,
+   "containerId": "g121"
+  },
+  {
+   "tag": "Shape",
+   "id": "s129",
+   "shape": "rectangle",
+   "x": 1117,
+   "y": 1124,
+   "width": 220,
+   "height": 44,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "(10) RDS standby\nsincrónica, sin tráfico",
+     "fontSize": 10,
+     "bold": true
+    }
+   ],
+   "containerId": "g121"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r130",
+   "from": "i91",
+   "to": "g106",
+   "fromPort": "bottom",
+   "toPort": "right",
+   "x": 508,
+   "y": 928,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     72
+    ],
+    [
+     -8,
+     72
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Relationship",
+   "id": "r131",
+   "from": "i111",
+   "to": "i115",
+   "fromPort": "left",
+   "toPort": "right",
+   "x": 535,
+   "y": 1036,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     -49,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7F8C8D",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Relationship",
+   "id": "r132",
+   "from": "i124",
+   "to": "i115",
+   "fromPort": "left",
+   "toPort": "right",
+   "x": 535,
+   "y": 1146,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     -27,
+     0
+    ],
+    [
+     -27,
+     -110
+    ],
+    [
+     -49,
+     -110
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7F8C8D",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Relationship",
+   "id": "r133",
+   "from": "i117",
+   "to": "i128",
+   "fromPort": "bottom",
+   "toPort": "top",
+   "x": 1093,
+   "y": 1054,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     74
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#7D3C98",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Shape",
+   "id": "s134",
+   "shape": "rectangle",
+   "x": 1102,
+   "y": 1072,
+   "width": 200,
+   "height": 16,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "replicación sincrónica (Multi-AZ)",
+     "fontSize": 10,
+     "color": "#7D3C98",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s135",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 1220,
+   "width": 1450,
+   "height": 130,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s136",
+   "shape": "ellipse",
+   "x": 8,
+   "y": 1208,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "12",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s137",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 1226,
+   "width": 260,
+   "height": 22,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Security Groups (encadenados)",
+     "fontSize": 13,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s138",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 1254,
+   "width": 290,
+   "height": 86,
+   "bgColor": "#FDECEE",
+   "borderColor": "#DD344C",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i139",
+   "icon": "shield",
+   "x": 50,
+   "y": 1280,
+   "width": 34,
+   "height": 34,
+   "size": "sm",
+   "color": "#DD344C"
+  },
+  {
+   "tag": "Shape",
+   "id": "s140",
+   "shape": "rectangle",
+   "x": 92,
+   "y": 1258,
+   "width": 232,
+   "height": 78,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "SG-ALB",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Entrada: 80/443 desde 0.0.0.0/0\nSalida: 3001–3004 → SG-EKS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s141",
+   "shape": "rectangle",
+   "x": 400,
+   "y": 1254,
+   "width": 290,
+   "height": 86,
+   "bgColor": "#E6F0FA",
+   "borderColor": "#1F6FB2",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i142",
+   "icon": "shield",
+   "x": 410,
+   "y": 1280,
+   "width": 34,
+   "height": 34,
+   "size": "sm",
+   "color": "#1F6FB2"
+  },
+  {
+   "tag": "Shape",
+   "id": "s143",
+   "shape": "rectangle",
+   "x": 452,
+   "y": 1258,
+   "width": 232,
+   "height": 78,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "SG-EKS",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Entrada: 3001–3004 desde SG-ALB\ny tráfico interno del clúster\nSalida: 3306 → SG-RDS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s144",
+   "shape": "rectangle",
+   "x": 760,
+   "y": 1254,
+   "width": 290,
+   "height": 86,
+   "bgColor": "#EFE6F7",
+   "borderColor": "#7D3C98",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i145",
+   "icon": "shield",
+   "x": 770,
+   "y": 1280,
+   "width": 34,
+   "height": 34,
+   "size": "sm",
+   "color": "#7D3C98"
+  },
+  {
+   "tag": "Shape",
+   "id": "s146",
+   "shape": "rectangle",
+   "x": 812,
+   "y": 1258,
+   "width": 232,
+   "height": 78,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "SG-RDS",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Entrada: 3306 desde SG-EKS\ny SG-LAMBDA\nsin salida a Internet",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s147",
+   "shape": "rectangle",
+   "x": 1120,
+   "y": 1254,
+   "width": 290,
+   "height": 86,
+   "bgColor": "#FFF3E0",
+   "borderColor": "#D86613",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Icon",
+   "id": "i148",
+   "icon": "shield",
+   "x": 1130,
+   "y": 1280,
+   "width": 34,
+   "height": 34,
+   "size": "sm",
+   "color": "#D86613"
+  },
+  {
+   "tag": "Shape",
+   "id": "s149",
+   "shape": "rectangle",
+   "x": 1172,
+   "y": 1258,
+   "width": 232,
+   "height": 78,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "SG-LAMBDA",
+     "fontSize": 13,
+     "bold": true
+    },
+    {
+     "text": "Sin entrada\nSalida: 3306 → SG-RDS\n443 → DynamoDB (prefix list)",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Relationship",
+   "id": "r150",
+   "from": "s138",
+   "to": "s141",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 330,
+   "y": 1297,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     70,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "3001–3004",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r151",
+   "from": "s141",
+   "to": "s144",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 690,
+   "y": 1297,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     70,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "3306",
+   "textSize": "small"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r152",
+   "from": "s147",
+   "to": "s144",
+   "fromPort": "left",
+   "toPort": "right",
+   "x": 1120,
+   "y": 1297,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     -70,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2,
+   "label": "3306",
+   "textSize": "small"
+  },
+  {
+   "tag": "Shape",
+   "id": "s153",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 1370,
+   "width": 1450,
+   "height": 126,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s154",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 1376,
+   "width": 200,
+   "height": 22,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "NOTAS IMPORTANTES",
+     "fontSize": 13,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s155",
+   "shape": "rectangle",
+   "x": 40,
+   "y": 1402,
+   "width": 690,
+   "height": 90,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Escalabilidad: Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment; Node Group de 2 a 4 nodos.\nDesacoplamiento: SQS separa la respuesta al cliente del registro en RDS; tras 3 intentos el mensaje pasa a la DLQ.\nSeguridad: SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, cifrado con KMS.",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s156",
+   "shape": "rectangle",
+   "x": 760,
+   "y": 1402,
+   "width": 690,
+   "height": 90,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Alta disponibilidad: ALB, nodos EKS y RDS en 2 AZ. NAT único (1a) por costo: si cae la AZ1a, APP 1b pierde la salida.\nLambda y la VPC: solo Process-Order se conecta a la VPC (necesita RDS); Cart y Create-Order quedan fuera.\nAPI Gateway → ALB: HTTP 80 por Internet (el lab no tiene certificado ACM); mejora propuesta: VPC Link con NLB.",
+     "fontSize": 11
+    }
+   ]
+  }
+ ]
+}
