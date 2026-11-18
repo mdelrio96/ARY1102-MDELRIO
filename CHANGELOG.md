@@ -76,6 +76,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-11-18` **ev3:** Agrega EV3/script/bootstrap-tfstate.sh ([239da5d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/239da5dad3e064ee4b4b2bab8ef4d4903467876d))
 - `2026-11-18` **ev3:** Agrega EV3/script/probar-flujo.sh ([49872b4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/49872b421f1a0d8613baa305b1cc11a7a0262d7c))
 - `2026-11-18` **ev3:** Agrega EV3/script/publicar-frontend.sh ([7655ca5](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/7655ca5f99ae57870ee201a335cf80220fdb3977))
+- `2026-11-18` **ev3:** Agrega EV3/script/desbloquear-estado.sh ([3ac1c42](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3ac1c42042e8f9356b46c8849298d381eba2ffa3))
 
 ### Corregido
 
@@ -96,6 +97,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-10-24` **ev2:** Un solo workflow para EP2 con la accion a elegir (desplegar, actualizar-app, infraestructura, plan, eliminar, validar) ([e63d90b](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/e63d90bdff560d38d67328eb95e5e824fb7a6f9c))
 - `2026-10-24` Nombres fijos en los jobs y titulo de cada run con la accion elegida ([33360f1](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/33360f156707c7f0f91786e1cd502a2f780c7c57))
 - `2026-11-18` **ev3:** Agrega el workflow ep3-freshbox ([f0cab35](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f0cab3573affa284c0216b29e8a62e1169009a45))
+- `2026-11-18` **ev3:** Agrega la accion desbloquear al workflow ep3-freshbox ([6c80fd0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/6c80fd0fdf41e8e14d841dadcaf6a6e7c9ac09c7))
 
 ### Documentación
 
