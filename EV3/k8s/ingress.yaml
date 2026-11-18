@@ -1,0 +1,44 @@
+# Ingress -> ALB internet-facing (EKS Auto Mode). API Gateway envia /api/products con
+# su metodo HTTP y el ALB elige el microservicio por regla de metodo
+# (alb.ingress.kubernetes.io/conditions.<servicio>):
+#   GET    -> get-products      POST   -> create-product
+#   PUT    -> update-product    DELETE -> delete-product
+# <SG_ALB_ID> = freshbox-sg-alb (80/443 desde Internet). Sin anotacion tags, por la
+# misma razon que en EV2: la politica de Auto Mode solo permite etiquetas eks:*.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshbox-ingress
+  namespace: freshbox
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: freshbox-eks-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/security-groups: <SG_ALB_ID>
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/conditions.get-products: '[{"field":"http-request-method","httpRequestMethodConfig":{"Values":["GET"]}}]'
+    alb.ingress.kubernetes.io/conditions.create-product: '[{"field":"http-request-method","httpRequestMethodConfig":{"Values":["POST"]}}]'
+    alb.ingress.kubernetes.io/conditions.update-product: '[{"field":"http-request-method","httpRequestMethodConfig":{"Values":["PUT"]}}]'
+    alb.ingress.kubernetes.io/conditions.delete-product: '[{"field":"http-request-method","httpRequestMethodConfig":{"Values":["DELETE"]}}]'
+spec:
+  ingressClassName: freshbox-alb
+  rules:
+    - http:
+        paths:
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service: { name: get-products, port: { number: 3001 } }
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service: { name: create-product, port: { number: 3002 } }
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service: { name: update-product, port: { number: 3003 } }
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service: { name: delete-product, port: { number: 3004 } }
