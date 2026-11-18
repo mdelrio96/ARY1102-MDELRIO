@@ -1,0 +1,11 @@
+{
+  "name": "freshbox-procesar-orden",
+  "version": "1.0.0",
+  "description": "Lambda consumer SQS FreshBox (SQS → MySQL)",
+  "main": "index.js",
+  "dependencies": {
+    "mysql2": "^3.6.0",
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/lib-dynamodb": "^3.400.0"
+  }
+}
