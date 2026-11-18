@@ -1,0 +1,45 @@
+# PodDisruptionBudget por servicio: en un drenaje voluntario de nodos (actualizacion
+# del Node Group) Kubernetes deja al menos una replica arriba.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: get-products-pdb
+  namespace: freshbox
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: get-products
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: create-product-pdb
+  namespace: freshbox
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: create-product
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: update-product-pdb
+  namespace: freshbox
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: update-product
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: delete-product-pdb
+  namespace: freshbox
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: delete-product
