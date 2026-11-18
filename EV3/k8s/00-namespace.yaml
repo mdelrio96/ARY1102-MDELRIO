@@ -1,0 +1,5 @@
+# Namespace de la aplicacion FreshBox en EKS (EP3): solo los microservicios CRUD de productos.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: freshbox
