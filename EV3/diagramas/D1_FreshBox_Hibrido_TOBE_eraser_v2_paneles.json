@@ -1,0 +1,484 @@
+{
+ "title": "D1 v2 · Componentes, IAM, flechas y flujos",
+ "elements": [
+  {
+   "tag": "Shape",
+   "id": "s157",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 20,
+   "width": 460,
+   "height": 330,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s158",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 20,
+   "width": 460,
+   "height": 32,
+   "bgColor": "#16324F",
+   "borderColor": "#16324F",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "COMPONENTES DEL DISEÑO",
+     "fontSize": 13,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s159",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 40,
+   "width": 440,
+   "height": 300,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "1 · Amazon S3 · sitio estático (HTML, CSS, JS)\n2 · API Gateway · rutas a Lambda y al ALB\n3 · Lambda Cart · CRUD del carrito en DynamoDB\n4 · Lambda Create-Order · total y publicación en SQS\n5 · Lambda Process-Order · consume SQS, escribe en RDS\n6 · DynamoDB · tabla carrito con TTL de 24 h\n7 · SQS · cola ordenes con DLQ\n8 · ALB Ingress · HTTP Integration, regla por método\n9 · EKS · 4 pods (GET, POST, PUT, DELETE)\n10 · RDS MySQL · Multi-AZ (primaria 1a, standby 1b)\n11 · VPC Endpoint Gateway · DynamoDB desde la VPC\n12 · Security Groups · SG-ALB, SG-EKS, SG-RDS, SG-LAMBDA\n13 · VPC · 6 subredes: pública, APP y DATA en 2 AZ\n14 · Flechas · síncrono, asíncrono y soporte\nSoporte · Internet Gateway, NAT Gateway, ECR, CloudWatch y KMS",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s160",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 370,
+   "width": 460,
+   "height": 230,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s161",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 370,
+   "width": 460,
+   "height": 32,
+   "bgColor": "#16324F",
+   "borderColor": "#16324F",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "IAM ROLES POR LAMBDA",
+     "fontSize": 13,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s162",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 406,
+   "width": 440,
+   "height": 120,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Lambda Cart: dynamodb:PutItem · Query · DeleteItem\nLambda Create-Order: dynamodb:Query · sqs:SendMessage\nLambda Process-Order: sqs:ReceiveMessage · DeleteMessage\n· GetQueueAttributes · dynamodb:Query · BatchWriteItem\n· ec2:Create/Describe/DeleteNetworkInterface\nLas tres: logs:CreateLogGroup · CreateLogStream · PutLogEvents",
+     "fontSize": 10
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s163",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 532,
+   "width": 440,
+   "height": 56,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "En el Learner Lab las tres funciones asumen LabRole (no se pueden crear roles IAM).\nEstas son las políticas mínimas del diseño objetivo.",
+     "fontSize": 10,
+     "color": "#5A6B7B"
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s164",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 620,
+   "width": 460,
+   "height": 156,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s165",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 620,
+   "width": 460,
+   "height": 32,
+   "bgColor": "#16324F",
+   "borderColor": "#16324F",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "FLECHAS DE FLUJO",
+     "fontSize": 13,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s166",
+   "shape": "ellipse",
+   "x": 8,
+   "y": 608,
+   "width": 26,
+   "height": 26,
+   "bgColor": "#1F4E9E",
+   "borderColor": "#FFFFFF",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "14",
+     "fontSize": 12,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s167",
+   "shape": "rectangle",
+   "x": 34,
+   "y": 674,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s168",
+   "shape": "rectangle",
+   "x": 106,
+   "y": 674,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r169",
+   "from": "s167",
+   "to": "s168",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 38,
+   "y": 676,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     68,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "solid",
+   "color": "#1F4E9E",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Shape",
+   "id": "s170",
+   "shape": "rectangle",
+   "x": 120,
+   "y": 658,
+   "width": 350,
+   "height": 36,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Flujo síncrono (solicitud y respuesta)\nEj: Usuario → API Gateway → Lambda",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s171",
+   "shape": "rectangle",
+   "x": 34,
+   "y": 712,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s172",
+   "shape": "rectangle",
+   "x": 106,
+   "y": 712,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r173",
+   "from": "s171",
+   "to": "s172",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 38,
+   "y": 714,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     68,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7D3C98",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Shape",
+   "id": "s174",
+   "shape": "rectangle",
+   "x": 120,
+   "y": 696,
+   "width": 350,
+   "height": 36,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Flujo asíncrono (desacoplado)\nEj: Create-Order → SQS → Process-Order",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s175",
+   "shape": "rectangle",
+   "x": 34,
+   "y": 750,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s176",
+   "shape": "rectangle",
+   "x": 106,
+   "y": 750,
+   "width": 4,
+   "height": 4,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Relationship",
+   "id": "r177",
+   "from": "s175",
+   "to": "s176",
+   "fromPort": "right",
+   "toPort": "left",
+   "x": 38,
+   "y": 752,
+   "width": 0,
+   "height": 0,
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     68,
+     0
+    ]
+   ],
+   "endArrowhead": "triangle",
+   "lineStyle": "dashed",
+   "color": "#7F8C8D",
+   "lineWidth": 2
+  },
+  {
+   "tag": "Shape",
+   "id": "s178",
+   "shape": "rectangle",
+   "x": 120,
+   "y": 734,
+   "width": 350,
+   "height": 36,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Soporte (imágenes y salida a Internet)\nEj: ECR → nodos EKS · nodos APP → NAT",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s179",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 796,
+   "width": 460,
+   "height": 290,
+   "bgColor": "#FFFFFF",
+   "borderColor": "#9AA5B1",
+   "styleMode": "plain"
+  },
+  {
+   "tag": "Shape",
+   "id": "s180",
+   "shape": "rectangle",
+   "x": 20,
+   "y": 796,
+   "width": 460,
+   "height": 32,
+   "bgColor": "#16324F",
+   "borderColor": "#16324F",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "FLUJOS DE LA APLICACIÓN",
+     "fontSize": 13,
+     "color": "#FFFFFF",
+     "bold": true
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s181",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 836,
+   "width": 440,
+   "height": 58,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Productos (CRUD)\nS3 → API Gateway → ALB → pod del método\n(GET, POST, PUT, DELETE) → RDS MySQL",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s182",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 896,
+   "width": 440,
+   "height": 58,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Carrito\nS3 → API Gateway → Lambda Cart → DynamoDB\n(el ítem expira a las 24 h por TTL)",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s183",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 956,
+   "width": 440,
+   "height": 58,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Órdenes\nS3 → API Gateway → Create-Order → DynamoDB\n→ SQS → Process-Order → RDS MySQL",
+     "fontSize": 11
+    }
+   ]
+  },
+  {
+   "tag": "Shape",
+   "id": "s184",
+   "shape": "rectangle",
+   "x": 30,
+   "y": 1016,
+   "width": 440,
+   "height": 58,
+   "bgColor": "transparent",
+   "borderColor": "transparent",
+   "styleMode": "plain",
+   "texts": [
+    {
+     "text": "Confirmación\nCreate-Order responde con orderId y total; el sitio\nmuestra «Su pedido fue procesado» y Process-Order\nguarda la orden y vacía el carrito",
+     "fontSize": 11
+    }
+   ]
+  }
+ ]
+}
