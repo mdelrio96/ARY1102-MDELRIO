@@ -87,4 +87,9 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-11-25` **ev3:** Actualiza el JSON de los paneles del diagrama eraser v2 ([f195813](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f195813a6e7701c1b14b49d1ebde5314d6c8eb3b))
 - `2026-11-25` **ev3:** Actualiza el PNG de los paneles del diagrama eraser v2 ([4ed377d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4ed377db1a55ffbcd40263a3467652e40cd0fe64))
 - `2026-11-25` **ev3:** Actualiza el diagrama draw.io v2 con la infra ([f795054](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f795054ff1dcf53e864d0064f6c18a81a65f319a))
+- `2026-11-25` **ev3:** Agrega el diagrama draw.io v2 sin panel ([feeeb62](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/feeeb62cce354bf20325ef3180ee5c508bbbdeda))
+- `2026-11-25` **ev3:** Agrega el PNG del diagrama v2 sin panel ([b5f810f](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/b5f810f6d0dc2fffaedcede21ff47ef777e451fb))
+- `2026-11-25` **ev3:** Agrega el SVG del diagrama v2 sin panel ([f264d37](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f264d3786c218da62122b36c72058d94ee21df23))
+- `2026-11-25` **ev3:** Agrega el PNG del diagrama draw.io v2 ([8985d80](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8985d804668d45c5a2fa25ea479958ffe780ca98))
+- `2026-11-25` **ev3:** Agrega el SVG del diagrama draw.io v2 ([116f59c](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/116f59ccd37bedd608625b3c3bce1d003fc1a8d8))
 
