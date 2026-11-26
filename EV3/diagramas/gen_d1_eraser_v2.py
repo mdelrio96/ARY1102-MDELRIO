@@ -147,11 +147,11 @@ def build():
 
     # fila A: entrada
     users = icon("users", 40, 116, 58, 58, label="Usuarios\n(navegador)")
-    s3 = card(170, 95, 250, 100, "aws-s3", "Amazon S3", "Static Website Hosting\nfreshbox-frontend-<cuenta>", STOR, num=1)
+    s3 = card(170, 95, 250, 100, "aws-s3", "Amazon S3", "Static Website Hosting\nfreshbox-frontend-<cuenta>\nlectura pública por política", STOR, num=1)
     api = card(520, 95, 270, 100, "aws-api-gateway", "Amazon API Gateway",
-               "freshbox-api · REST · stage prod\nentrada única · CORS", INTEG, num=2)
+               "freshbox-api · REST regional\nstage prod · entrada única · CORS\nproxy HTTP al ALB y a Lambda", INTEG, num=2)
     alb = card(1180, 95, 290, 100, "aws-elb-application-load-balancer", "ALB Ingress (EKS)",
-               "HTTP Integration · internet-facing\nuna regla por método · SG-ALB", NET, num=8, subnet=("PÚBLICA", C_PUB))
+               "freshbox-eks-alb · HTTP 80\nuna regla por método · SG-ALB\nlo crea EKS Auto Mode", NET, num=8, subnet=("PÚBLICA", C_PUB))
     rel(users, s3, [(98, 145), (170, 145)], "HTTP 80", fp="right", tp="left")
     rel(s3, api, [(420, 145), (520, 145)], "fetch · HTTPS 443", fp="right", tp="left")
     rel(api, alb, [(790, 145), (1180, 145)], "/api/products · GET · POST · PUT · DELETE", fp="right", tp="left")
@@ -165,7 +165,7 @@ def build():
     rel(api, cart, [(600, 195), (600, 250), (170, 250), (170, 290)], "/api/cart · GET · POST · DELETE")
     rel(api, corder, [(600, 195), (600, 250), (505, 250), (505, 290)], "/api/orders · POST")
     ecr = card(860, 300, 250, 80, "aws-elastic-container-registry", "Amazon ECR",
-               "4 repositorios freshbox-*\nimágenes linux/arm64", COMP, isz=40)
+               "4 repositorios freshbox-*\nimágenes linux/arm64\nescaneo al subir · últimas 10", COMP, isz=40)
 
     # fila C: DynamoDB, SQS (+DLQ), Process-Order
     ddb = card(40, 460, 260, 100, "aws-dynamodb", "Amazon DynamoDB",
@@ -173,7 +173,7 @@ def build():
     sqs = card(500, 460, 280, 100, "aws-sqs", "Amazon SQS",
                "ordenes-freshbox · cifrada (SSE)\nentrega por lotes a Process-Order", INTEG, num=7)
     po = card(850, 460, 280, 100, "aws-lambda", "Lambda Process-Order",
-              "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)", COMP, num=5,
+              "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)\nlotes de 10 · máx. 2 en paralelo", COMP, num=5,
               subnet=("PRIVADA APP", C_APP))
     dlq = card(575, 584, 210, 52, "aws-sqs", "DLQ", "ordenes-freshbox-dlq", INTEG, isz=32)
     rel(cart, ddb, [(170, 390), (170, 460)], "Put · Query · Delete")
@@ -185,7 +185,7 @@ def build():
 
     # VPC Endpoint Gateway
     vpce = card(400, 660, 260, 80, "aws-vpc-endpoints", "VPC Endpoint Gateway",
-                "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo", NET, num=11, isz=44)
+                "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo\npolítica: solo tabla carrito", NET, num=11, isz=44)
     rel(po, vpce, [(900, 560), (900, 700), (660, 700)], "borra el carrito · HTTPS 443", tp="right")
     rel(vpce, ddb, [(400, 700), (170, 700), (170, 560)], "acceso privado", fp="left", tp="bottom")
 
@@ -193,7 +193,7 @@ def build():
     eks = shape("", 1180, 285, 290, 300, fill="#FFFFFF", stroke=COMP)
     icon("aws-eks", 1192, 293, 36, 36)
     shape("Amazon EKS · freshbox-cluster", 1236, 291, 228, 20, fs=12, bold=True)
-    shape("CRUD de productos (4 Deployments)", 1236, 311, 228, 18, fs=11)
+    shape("Kubernetes 1.34 · 4 Deployments (CRUD)", 1236, 311, 228, 18, fs=11)
     badge(9, 1168, 273)
     chip("PRIVADA APP", C_APP, 1358, 276)
     shape("", 1192, 341, 266, 196, fill="#FFF8F0", stroke=COMP, dashed=True)
@@ -202,20 +202,20 @@ def build():
     for k, (nombre, metodo) in enumerate(pods):
         shape(f"{nombre}\n{metodo}", 1200 + (k % 2) * 130, 352 + (k // 2) * 92, 120, 82,
               fill="#EAF1FF", stroke="#326CE5", fs=11, bold=True)
-    shape("2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group 2–4 × t4g.small · EBS cifrado",
+    shape("2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group t4g.small 2–4 · EBS gp3 cifrado",
           1185, 541, 280, 32, color=GRIS_TXT, fs=10)
     rel(alb, eks, [(1325, 195), (1325, 285)], "HTTP :3001–3004")
     rel(ecr, eks, [(1110, 340), (1180, 340)], "pull de imágenes", fp="right", tp="left", kind="sup")
 
     rds = card(1180, 640, 290, 100, "aws-rds", "Amazon RDS MySQL 8.0",
-               "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes", DB, num=10,
+               "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes\nrespaldo automático 7 días", DB, num=10,
                subnet=("PRIVADA DATA", C_DAT))
     rel(eks, rds, [(1325, 585), (1325, 640)], "MySQL 3306")
     rel(po, rds, [(1070, 560), (1070, 690), (1180, 690)], "INSERT orden · MySQL 3306", tp="left")
     card(1180, 756, 290, 58, "aws-cloudwatch", "Amazon CloudWatch",
-         "logs de Lambda, API Gateway y EKS\nmétricas de RDS y SQS", MGMT, isz=36)
+         "logs de Lambda · Container Insights\nmétricas de API Gateway, RDS y SQS", MGMT, isz=36)
     card(1180, 824, 290, 58, "aws-key-management-service", "AWS KMS",
-         "cifrado en reposo de EBS, RDS,\nSQS y DynamoDB", SEC, isz=36)
+         "aws/ebs (nodos) · aws/rds (base)\nSQS y DynamoDB: cifrado del servicio", SEC, isz=36)
 
     # franja VPC (13): 2 AZ x 3 capas
     vpc = group("VPC freshbox-vpc · 10.0.0.0/22", 20, 910, 1450, 290, "#FFFFFF", "#3F8F29", "#2E6B1E", fs=14,
@@ -273,7 +273,7 @@ def build():
     badge(12, 8, 1208)
     shape("Security Groups (encadenados)", 40, 1226, 260, 22, fs=13, bold=True)
     sgs = [("SG-ALB", "Entrada: 80/443 desde 0.0.0.0/0\nSalida: 3001–3004 → SG-EKS", ROJO, 40),
-           ("SG-EKS", "Entrada: 3001–3004 desde SG-ALB\ny tráfico interno del clúster\nSalida: 3306 → SG-RDS", AZUL, 400),
+           ("SG-EKS", "Entrada: 3001–3004 solo desde SG-ALB\nSalida: 3306 → SG-RDS · 443 por NAT\nnodo ↔ nodo: SG del clúster", AZUL, 400),
            ("SG-RDS", "Entrada: 3306 desde SG-EKS\ny SG-LAMBDA\nsin salida a Internet", MORADO, 760),
            ("SG-LAMBDA", "Sin entrada\nSalida: 3306 → SG-RDS\n443 → DynamoDB (prefix list)", NARANJA, 1120)]
     sg_ids = []
@@ -289,9 +289,9 @@ def build():
     shape("", 20, 1370, 1450, 126, fill="#FFFFFF", stroke="#9AA5B1")
     shape("NOTAS IMPORTANTES", 40, 1376, 200, 22, fs=13, bold=True)
     notas = [
-        "Escalabilidad: Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment; Node Group de 2 a 4 nodos.",
+        "Escalabilidad: Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment al 70 % de CPU; Node Group de 2 a 4 nodos.",
         "Desacoplamiento: SQS separa la respuesta al cliente del registro en RDS; tras 3 intentos el mensaje pasa a la DLQ.",
-        "Seguridad: SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, cifrado con KMS.",
+        "Seguridad: SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, todo cifrado en reposo.",
         "Alta disponibilidad: ALB, nodos EKS y RDS en 2 AZ. NAT único (1a) por costo: si cae la AZ1a, APP 1b pierde la salida.",
         "Lambda y la VPC: solo Process-Order se conecta a la VPC (necesita RDS); Cart y Create-Order quedan fuera.",
         "API Gateway → ALB: HTTP 80 por Internet (el lab no tiene certificado ACM); mejora propuesta: VPC Link con NLB.",
@@ -310,7 +310,7 @@ def build():
         "1 · Amazon S3 · sitio estático (HTML, CSS, JS)", "2 · API Gateway · rutas a Lambda y al ALB",
         "3 · Lambda Cart · CRUD del carrito en DynamoDB", "4 · Lambda Create-Order · total y publicación en SQS",
         "5 · Lambda Process-Order · consume SQS, escribe en RDS", "6 · DynamoDB · tabla carrito con TTL de 24 h",
-        "7 · SQS · cola ordenes con DLQ", "8 · ALB Ingress · HTTP Integration, regla por método",
+        "7 · SQS · cola ordenes con DLQ", "8 · ALB Ingress · lo crea EKS Auto Mode, regla por método",
         "9 · EKS · 4 pods (GET, POST, PUT, DELETE)", "10 · RDS MySQL · Multi-AZ (primaria 1a, standby 1b)",
         "11 · VPC Endpoint Gateway · DynamoDB desde la VPC", "12 · Security Groups · SG-ALB, SG-EKS, SG-RDS, SG-LAMBDA",
         "13 · VPC · 6 subredes: pública, APP y DATA en 2 AZ", "14 · Flechas · síncrono, asíncrono y soporte",
