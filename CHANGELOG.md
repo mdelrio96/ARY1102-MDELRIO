@@ -128,6 +128,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-11-25` **ev3:** Agrega el SVG del diagrama v2 sin panel ([f264d37](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f264d3786c218da62122b36c72058d94ee21df23))
 - `2026-11-25` **ev3:** Agrega el PNG del diagrama draw.io v2 ([8985d80](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8985d804668d45c5a2fa25ea479958ffe780ca98))
 - `2026-11-25` **ev3:** Agrega el SVG del diagrama draw.io v2 ([116f59c](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/116f59ccd37bedd608625b3c3bce1d003fc1a8d8))
+- `2026-11-25` Actualiza el README principal con EP3 ([8b8dd15](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/8b8dd15a0536fe45f734325742e9af70778f6447))
 
 ### Mantenimiento
 
