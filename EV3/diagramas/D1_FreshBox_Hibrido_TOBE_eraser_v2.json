@@ -93,7 +93,7 @@
      "bold": true
     },
     {
-     "text": "Static Website Hosting\nfreshbox-frontend-<cuenta>",
+     "text": "Static Website Hosting\nfreshbox-frontend-<cuenta>\nlectura pública por política",
      "fontSize": 11
     }
    ]
@@ -157,7 +157,7 @@
      "bold": true
     },
     {
-     "text": "freshbox-api · REST · stage prod\nentrada única · CORS",
+     "text": "freshbox-api · REST regional\nstage prod · entrada única · CORS\nproxy HTTP al ALB y a Lambda",
      "fontSize": 11
     }
    ]
@@ -221,7 +221,7 @@
      "bold": true
     },
     {
-     "text": "HTTP Integration · internet-facing\nuna regla por método · SG-ALB",
+     "text": "freshbox-eks-alb · HTTP 80\nuna regla por método · SG-ALB\nlo crea EKS Auto Mode",
      "fontSize": 11
     }
    ]
@@ -608,7 +608,7 @@
      "bold": true
     },
     {
-     "text": "4 repositorios freshbox-*\nimágenes linux/arm64",
+     "text": "4 repositorios freshbox-*\nimágenes linux/arm64\nescaneo al subir · últimas 10",
      "fontSize": 11
     }
    ]
@@ -780,7 +780,7 @@
      "bold": true
     },
     {
-     "text": "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)",
+     "text": "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)\nlotes de 10 · máx. 2 en paralelo",
      "fontSize": 11
     }
    ]
@@ -1070,7 +1070,7 @@
      "bold": true
     },
     {
-     "text": "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo",
+     "text": "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo\npolítica: solo tabla carrito",
      "fontSize": 11
     }
    ]
@@ -1212,7 +1212,7 @@
    "styleMode": "plain",
    "texts": [
     {
-     "text": "CRUD de productos (4 Deployments)",
+     "text": "Kubernetes 1.34 · 4 Deployments (CRUD)",
      "fontSize": 11
     }
    ]
@@ -1359,7 +1359,7 @@
    "styleMode": "plain",
    "texts": [
     {
-     "text": "2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group 2–4 × t4g.small · EBS cifrado",
+     "text": "2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group t4g.small 2–4 · EBS gp3 cifrado",
      "fontSize": 10,
      "color": "#5A6B7B"
     }
@@ -1460,7 +1460,7 @@
      "bold": true
     },
     {
-     "text": "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes",
+     "text": "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes\nrespaldo automático 7 días",
      "fontSize": 11
     }
    ]
@@ -1604,7 +1604,7 @@
      "bold": true
     },
     {
-     "text": "logs de Lambda, API Gateway y EKS\nmétricas de RDS y SQS",
+     "text": "logs de Lambda · Container Insights\nmétricas de API Gateway, RDS y SQS",
      "fontSize": 11
     }
    ]
@@ -1648,7 +1648,7 @@
      "bold": true
     },
     {
-     "text": "cifrado en reposo de EBS, RDS,\nSQS y DynamoDB",
+     "text": "aws/ebs (nodos) · aws/rds (base)\nSQS y DynamoDB: cifrado del servicio",
      "fontSize": 11
     }
    ]
@@ -2565,7 +2565,7 @@
      "bold": true
     },
     {
-     "text": "Entrada: 3001–3004 desde SG-ALB\ny tráfico interno del clúster\nSalida: 3306 → SG-RDS",
+     "text": "Entrada: 3001–3004 solo desde SG-ALB\nSalida: 3306 → SG-RDS · 443 por NAT\nnodo ↔ nodo: SG del clúster",
      "fontSize": 11
     }
    ]
@@ -2790,7 +2790,7 @@
    "styleMode": "plain",
    "texts": [
     {
-     "text": "Escalabilidad: Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment; Node Group de 2 a 4 nodos.\nDesacoplamiento: SQS separa la respuesta al cliente del registro en RDS; tras 3 intentos el mensaje pasa a la DLQ.\nSeguridad: SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, cifrado con KMS.",
+     "text": "Escalabilidad: Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment al 70 % de CPU; Node Group de 2 a 4 nodos.\nDesacoplamiento: SQS separa la respuesta al cliente del registro en RDS; tras 3 intentos el mensaje pasa a la DLQ.\nSeguridad: SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, todo cifrado en reposo.",
      "fontSize": 11
     }
    ]
