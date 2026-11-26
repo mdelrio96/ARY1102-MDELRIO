@@ -46,7 +46,7 @@
    "styleMode": "plain",
    "texts": [
     {
-     "text": "1 · Amazon S3 · sitio estático (HTML, CSS, JS)\n2 · API Gateway · rutas a Lambda y al ALB\n3 · Lambda Cart · CRUD del carrito en DynamoDB\n4 · Lambda Create-Order · total y publicación en SQS\n5 · Lambda Process-Order · consume SQS, escribe en RDS\n6 · DynamoDB · tabla carrito con TTL de 24 h\n7 · SQS · cola ordenes con DLQ\n8 · ALB Ingress · HTTP Integration, regla por método\n9 · EKS · 4 pods (GET, POST, PUT, DELETE)\n10 · RDS MySQL · Multi-AZ (primaria 1a, standby 1b)\n11 · VPC Endpoint Gateway · DynamoDB desde la VPC\n12 · Security Groups · SG-ALB, SG-EKS, SG-RDS, SG-LAMBDA\n13 · VPC · 6 subredes: pública, APP y DATA en 2 AZ\n14 · Flechas · síncrono, asíncrono y soporte\nSoporte · Internet Gateway, NAT Gateway, ECR, CloudWatch y KMS",
+     "text": "1 · Amazon S3 · sitio estático (HTML, CSS, JS)\n2 · API Gateway · rutas a Lambda y al ALB\n3 · Lambda Cart · CRUD del carrito en DynamoDB\n4 · Lambda Create-Order · total y publicación en SQS\n5 · Lambda Process-Order · consume SQS, escribe en RDS\n6 · DynamoDB · tabla carrito con TTL de 24 h\n7 · SQS · cola ordenes con DLQ\n8 · ALB Ingress · lo crea EKS Auto Mode, regla por método\n9 · EKS · 4 pods (GET, POST, PUT, DELETE)\n10 · RDS MySQL · Multi-AZ (primaria 1a, standby 1b)\n11 · VPC Endpoint Gateway · DynamoDB desde la VPC\n12 · Security Groups · SG-ALB, SG-EKS, SG-RDS, SG-LAMBDA\n13 · VPC · 6 subredes: pública, APP y DATA en 2 AZ\n14 · Flechas · síncrono, asíncrono y soporte\nSoporte · Internet Gateway, NAT Gateway, ECR, CloudWatch y KMS",
      "fontSize": 11
     }
    ]
