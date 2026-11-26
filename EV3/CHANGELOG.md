@@ -67,6 +67,8 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 - `2026-11-18` **ev3:** Agrega EV3/script/probar-flujo.sh ([49872b4](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/49872b421f1a0d8613baa305b1cc11a7a0262d7c))
 - `2026-11-18` **ev3:** Agrega EV3/script/publicar-frontend.sh ([7655ca5](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/7655ca5f99ae57870ee201a335cf80220fdb3977))
 - `2026-11-18` **ev3:** Agrega EV3/script/desbloquear-estado.sh ([3ac1c42](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/3ac1c42042e8f9356b46c8849298d381eba2ffa3))
+- `2026-11-25` **ev3:** Actualiza el generador del diagrama eraser v2 ([7dea422](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/7dea42201ff8962ed86b9a04825c81aff7fae4a5))
+- `2026-11-25` **ev3:** Actualiza el generador del diagrama v2 y agrega la variante sin panel ([20366fb](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/20366fbf26a3ab0ddac995a418968e7e5bc9296b))
 
 ### Corregido
 
@@ -77,4 +79,12 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 
 - `2026-11-18` **ev3:** Agrega el workflow ep3-freshbox ([f0cab35](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f0cab3573affa284c0216b29e8a62e1169009a45))
 - `2026-11-18` **ev3:** Agrega la accion desbloquear al workflow ep3-freshbox ([6c80fd0](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/6c80fd0fdf41e8e14d841dadcaf6a6e7c9ac09c7))
+
+### Documentación
+
+- `2026-11-25` **ev3:** Actualiza el JSON del diagrama eraser v2 con la infra ([a4d19f8](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/a4d19f86723e89c098a0b3e5a0ff4bd71e9c77dd))
+- `2026-11-25` **ev3:** Actualiza el PNG del diagrama eraser v2 ([0f88ebc](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/0f88ebc64a98a3653ab782b587ae1322f1b6f6c4))
+- `2026-11-25` **ev3:** Actualiza el JSON de los paneles del diagrama eraser v2 ([f195813](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f195813a6e7701c1b14b49d1ebde5314d6c8eb3b))
+- `2026-11-25` **ev3:** Actualiza el PNG de los paneles del diagrama eraser v2 ([4ed377d](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/4ed377db1a55ffbcd40263a3467652e40cd0fe64))
+- `2026-11-25` **ev3:** Actualiza el diagrama draw.io v2 con la infra ([f795054](https://github.com/mdelrio96/ARY1102-MDELRIO/commit/f795054ff1dcf53e864d0064f6c18a81a65f319a))
 
