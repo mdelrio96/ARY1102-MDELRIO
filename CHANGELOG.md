@@ -4,7 +4,7 @@ Generado automáticamente con [git-cliff](https://git-cliff.org) a partir de los
 ([Conventional Commits](https://www.conventionalcommits.org/es/)); formato basado en
 [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). No editar a mano.
 
-## [Unreleased]
+## [1.0.0] - 2026-11-25
 
 ### Añadido
 
