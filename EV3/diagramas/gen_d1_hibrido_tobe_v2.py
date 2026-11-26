@@ -154,8 +154,8 @@ def sep(x, y, w):
     vertex("", "rounded=0;html=1;fillColor=#D0D5DB;strokeColor=none;", x, y, w, 1)
 
 
-def build():
-    W, H = 2000, 1510
+def build(sin_panel=False):
+    W, H = (1490, 1510) if sin_panel else (2000, 1510)
     pub, app, dat = PAL["verde"], PAL["azul"], PAL["morado"]
 
     # ------------------------------------------------------------------ título
@@ -165,12 +165,12 @@ def build():
 
     # ------------------------------------------------------------------ fila A: entrada
     users = vertex("Usuarios\n(navegador)", icon("users", "#232F3E"), 40, 116, 58, 58)
-    s3 = card(170, 95, 250, 100, "s3", STOR, "Amazon S3", "Static Website Hosting\nfreshbox-frontend-&lt;cuenta&gt;",
+    s3 = card(170, 95, 250, 100, "s3", STOR, "Amazon S3", "Static Website Hosting\nfreshbox-frontend-&lt;cuenta&gt;\nlectura pública por política",
               STOR, num=1)
     api = card(520, 95, 270, 100, "api_gateway", INTEG, "Amazon API Gateway",
-               "freshbox-api · REST · stage prod\nentrada única · CORS", INTEG, num=2)
+               "freshbox-api · REST regional\nstage prod · entrada única · CORS\nproxy HTTP al ALB y a Lambda", INTEG, num=2)
     alb = card(1180, 95, 290, 100, "application_load_balancer", NET, "ALB Ingress (EKS)",
-               "HTTP Integration · internet-facing\nuna regla por método · SG-ALB", NET, num=8,
+               "freshbox-eks-alb · HTTP 80\nuna regla por método · SG-ALB\nlo crea EKS Auto Mode", NET, num=8,
                subnet=("PÚBLICA", C_PUB))
 
     edge(users, s3, "HTTP 80", SYNC + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
@@ -187,7 +187,7 @@ def build():
     vertex("/api/cart · GET · POST · DELETE", text(11, BLUE, "left", 1), 178, 258, 210, 18)
     vertex("/api/orders · POST", text(11, BLUE, "left", 1), 513, 258, 140, 18)
 
-    ecr = card(860, 300, 250, 80, "ecr", COMP, "Amazon ECR", "4 repositorios freshbox-*\nimágenes linux/arm64", COMP, isz=40)
+    ecr = card(860, 300, 250, 80, "ecr", COMP, "Amazon ECR", "4 repositorios freshbox-*\nimágenes linux/arm64\nescaneo al subir · últimas 10", COMP, isz=40)
 
     # ------------------------------------------------------------------ fila C: DynamoDB, SQS (+DLQ), Process-Order
     ddb = card(40, 460, 260, 100, "dynamodb", DB, "Amazon DynamoDB",
@@ -195,7 +195,7 @@ def build():
     sqs = card(500, 460, 280, 100, "sqs", INTEG, "Amazon SQS",
                "ordenes-freshbox · cifrada (SSE)\nentrega por lotes a Process-Order", INTEG, num=7)
     po = card(850, 460, 280, 100, "lambda", COMP, "Lambda Process-Order",
-              "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)", COMP, num=5,
+              "freshbox-procesar-orden\ntrigger SQS · INSERT en RDS\nENI en APP 1a y 1b (SG-LAMBDA)\nlotes de 10 · máx. 2 en paralelo", COMP, num=5,
               subnet=("PRIVADA APP", C_APP))
     dlq = card(575, 584, 210, 52, "sqs", INTEG, "DLQ", "ordenes-freshbox-dlq", INTEG, isz=32)
 
@@ -210,7 +210,7 @@ def build():
 
     # ------------------------------------------------------------------ VPC Endpoint Gateway (Process-Order -> DynamoDB)
     vpce = card(400, 660, 260, 80, "endpoints", NET, "VPC Endpoint Gateway",
-                "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo", NET, num=11, isz=44)
+                "DynamoDB · asociado a la RT APP\nsin salir a Internet · sin costo\npolítica: solo tabla carrito", NET, num=11, isz=44)
     edge(po, vpce, "", SYNC + "exitX=0.18;exitY=1;entryX=1;entryY=0.5;", points=[[900, 700]])
     vertex("borra el carrito · HTTPS 443", text(10, BLUE, "left", 1), 672, 680, 224, 16)
     edge(vpce, ddb, "", SYNC + "exitX=0;exitY=0.5;entryX=0.5;entryY=1;", points=[[170, 700]])
@@ -220,7 +220,7 @@ def build():
     ek_x, ek_y, ek_w, ek_h = 1180, 285, 290, 300
     eks = vertex("", box("#FFFFFF", COMP, DARK, extra="arcSize=3;strokeWidth=2;"), ek_x, ek_y, ek_w, ek_h)
     vertex("", icon("eks", COMP), ek_x + 12, ek_y + 8, 36, 36)
-    vertex("<b>Amazon EKS · freshbox-cluster</b><br>CRUD de productos (4 Deployments)", text(12, DARK, "left", 0, "middle"),
+    vertex("<b>Amazon EKS · freshbox-cluster</b><br>Kubernetes 1.34 · 4 Deployments (CRUD)", text(12, DARK, "left", 0, "middle"),
            ek_x + 56, ek_y + 4, 228, 44)
     badge(9, ek_x - 12, ek_y - 12)
     chip("PRIVADA APP", C_APP, ek_x + ek_w - 112, ek_y - 9)
@@ -233,7 +233,7 @@ def build():
         py = ek_y + 68 + (k // 2) * 90
         vertex("", k8s_icon("pod"), cx - 20, py, 40, 40)
         vertex(f"{nombre}\n{metodo}", text(11, DARK, "center", 1), cx - 62, py + 42, 124, 32)
-    vertex("2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group 2–4 × t4g.small · EBS cifrado",
+    vertex("2 réplicas por Deployment (1 por AZ) · HPA 2–5\nNode Group t4g.small 2–4 · EBS gp3 cifrado",
            text(10, "#5A6B7B", "center"), ek_x + 5, ek_y + 256, ek_w - 10, 32)
 
     edge(alb, eks, "", SYNC + "exitX=0.5;exitY=1;entryX=0.5;entryY=0;")
@@ -241,7 +241,7 @@ def build():
     edge(ecr, eks, "pull de\nimágenes", SUP + "exitX=1;exitY=0.5;entryX=0;entryY=0.1833;")
 
     rds = card(1180, 640, 290, 100, "rds", DB, "Amazon RDS MySQL 8.0",
-               "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes", DB, num=10,
+               "Multi-AZ · db.t4g.small · cifrada\nprimaria 1a · standby 1b\nproductos y órdenes\nrespaldo automático 7 días", DB, num=10,
                subnet=("PRIVADA DATA", C_DAT))
     edge(eks, rds, "", SYNC + "exitX=0.5;exitY=1;entryX=0.5;entryY=0;")
     vertex("MySQL 3306\n(pods CRUD)", text(11, BLUE, "left", 1), 1333, 590, 120, 32)
@@ -249,9 +249,9 @@ def build():
     vertex("INSERT orden\nMySQL 3306", text(11, BLUE, "left", 1), 1078, 580, 98, 32)
 
     card(1180, 756, 290, 58, "cloudwatch_2", MGMT, "Amazon CloudWatch",
-         "logs de Lambda, API Gateway y EKS · métricas de RDS y SQS", MGMT, isz=36)
+         "logs de Lambda · Container Insights\nmétricas de API Gateway, RDS y SQS", MGMT, isz=36)
     card(1180, 824, 290, 58, "key_management_service", SEC, "AWS KMS",
-         "cifrado en reposo de EBS, RDS, SQS y DynamoDB", SEC, isz=36)
+         "aws/ebs (nodos) · aws/rds (base)\nSQS y DynamoDB: cifrado del servicio", SEC, isz=36)
 
     # ------------------------------------------------------------------ franja VPC (13): 2 AZ x 3 capas = 6 subredes
     VY, VH = 910, 290
@@ -319,7 +319,7 @@ def build():
     vertex("Security Groups (encadenados)", text(13, DARK, "left", 1), 40, GY + 6, 400, 22)
     sgs = [
         ("SG-ALB", "Entrada: 80/443 desde 0.0.0.0/0\nSalida: 3001–3004 → SG-EKS", "rojo", 40),
-        ("SG-EKS", "Entrada: 3001–3004 desde SG-ALB\ny tráfico interno del clúster\nSalida: 3306 → SG-RDS", "azul", 400),
+        ("SG-EKS", "Entrada: 3001–3004 solo desde SG-ALB\nSalida: 3306 → SG-RDS · 443 por NAT\nnodo ↔ nodo: SG del clúster", "azul", 400),
         ("SG-RDS", "Entrada: 3306 desde SG-EKS\ny SG-LAMBDA\nsin salida a Internet", "morado", 760),
         ("SG-LAMBDA", "Sin entrada\nSalida: 3306 → SG-RDS\n443 → DynamoDB (prefix list)", "naranja", 1120),
     ]
@@ -339,9 +339,9 @@ def build():
     vertex("", box("#FFFFFF", "#9AA5B1", DARK, extra="arcSize=3;"), 20, NY, 1450, 126)
     vertex("NOTAS IMPORTANTES", text(13, DARK, "left", 1), 40, NY + 6, 300, 22)
     notas = [
-        ("Escalabilidad", "Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment; Node Group de 2 a 4 nodos."),
+        ("Escalabilidad", "Lambda escala por solicitud; HPA de 2 a 5 réplicas por Deployment al 70 % de CPU; Node Group de 2 a 4 nodos."),
         ("Desacoplamiento", "SQS separa la respuesta al cliente del registro en RDS; tras 3 intentos fallidos el mensaje pasa a la DLQ."),
-        ("Seguridad", "SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, cifrado en reposo con KMS."),
+        ("Seguridad", "SG encadenados por capa, RDS solo en subredes DATA, DynamoDB por VPC Endpoint, todo cifrado en reposo."),
         ("Alta disponibilidad", "ALB, nodos EKS y RDS en 2 AZ. El NAT es único (1a) por costo: si cae la AZ1a, APP 1b pierde la salida a Internet."),
         ("Lambda y la VPC", "solo Process-Order se conecta a la VPC (necesita RDS); Cart y Create-Order usan DynamoDB y SQS desde fuera."),
         ("API Gateway → ALB", "integración HTTP 80 por Internet (el lab no tiene certificado ACM); mejora propuesta: VPC Link con NLB."),
@@ -350,6 +350,9 @@ def build():
         cx = 40 if j < 3 else 760
         y = NY + 32 + 30 * (j % 3)
         vertex(f"<b>{nombre}:</b> {det}", text(11, DARK, "left", 0, "middle"), cx, y, 690, 30)
+
+    if sin_panel:  # solo la arquitectura: sin componentes, IAM, leyenda ni flujos
+        return documento(W, H)
 
     # ------------------------------------------------------------------ panel 1: componentes 1 a 14 + soporte
     PX, PW = 1520, 460
@@ -362,7 +365,7 @@ def build():
         "<b>Lambda Process-Order</b> · consume SQS, escribe en RDS",
         "<b>DynamoDB</b> · tabla carrito con TTL de 24 h",
         "<b>SQS</b> · cola ordenes con DLQ",
-        "<b>ALB Ingress</b> · HTTP Integration, regla por método",
+        "<b>ALB Ingress</b> · lo crea EKS Auto Mode, regla por método",
         "<b>EKS</b> · 4 pods (GET, POST, PUT, DELETE)",
         "<b>RDS MySQL</b> · Multi-AZ (primaria 1a, standby 1b)",
         "<b>VPC Endpoint Gateway</b> · DynamoDB desde la VPC",
@@ -430,6 +433,10 @@ def build():
         vertex(f"<b>{nombre}</b><br>{det}", text(11, DARK, "left", 0, "middle"), PX + 26, y, PW - 36, h)
         y += h + 6
 
+    return documento(W, H)
+
+
+def documento(W, H):
     return (
         '<mxfile host="app.diagrams.net" agent="gen_d1_hibrido_tobe_v2" version="24.7.0">\n'
         '  <diagram id="tobe-hibrido-v2" name="D1 TO-BE híbrido v2">\n'
@@ -442,7 +449,10 @@ def build():
 
 
 if __name__ == "__main__":
-    out = sys.argv[1] if len(sys.argv) > 1 else "D1_FreshBox_Hibrido_TOBE_v2.drawio"
+    sin_panel = "--sin-panel" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "--sin-panel"]
+    defecto = "D1_FreshBox_Hibrido_TOBE_v2_sin_panel.drawio" if sin_panel else "D1_FreshBox_Hibrido_TOBE_v2.drawio"
+    out = args[0] if args else defecto
     with open(out, "w", encoding="utf-8") as f:
-        f.write(build())
+        f.write(build(sin_panel))
     print(f"OK {out} ({len(cells)} celdas)")
